@@ -1,4 +1,4 @@
-#2024 Joining dataframes (CVAT annotations and second watch csv) 
+#Joining dataframes (CVAT annotations and second watch csv) 
 
 #load packages
 library(xml2)
@@ -74,9 +74,7 @@ frame_df2 <- frame_df2 %>%
 Final_2024 <- frame_df2 %>%
   left_join(B_24_second, by = "file_name")
 
-view(Final_2024)
-
-#Clean dataset for unecessary coulumns and rename 
+#Clean dataset for unecessary columns and rename 
 
 #rename columns
 colnames(Final_2024)[colnames(Final_2024) == "task_id"] <- "Task_ID"
@@ -95,5 +93,3 @@ Final_2024 <- Final_2024 %>%
 #fix typo in Walking_V
 Final_2024 <- Final_2024 %>%
   mutate(Behaviour = ifelse(Behaviour == "Waking_V", "Walking_V", Behaviour))
-
-View(Final_2024)
