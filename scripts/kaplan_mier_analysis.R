@@ -201,6 +201,11 @@ ggsurvplot(fit_predator,
 
 survdiff(surv_obj ~ predator_cue, data = Baboon_flight_KM_all)
 
+pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ predator_cue,
+                  data = Baboon_flight_KM_all,
+                  p.adjust.method = "holm")
+
+
 #by year
 fit_year <- survfit(surv_obj ~ year, data = Baboon_flight_KM_all)
 
@@ -212,6 +217,11 @@ ggsurvplot(fit_year,
            risk.table = TRUE)
 
 survdiff(surv_obj ~ year, data = Baboon_flight_KM_all)
+
+pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ year,
+                  data = Baboon_flight_KM_all,
+                  p.adjust.method = "holm")
+
 
 
 #by sex
@@ -226,6 +236,11 @@ ggsurvplot(fit_sex,
 
 survdiff(surv_obj ~ sex, data = Baboon_flight_KM_all)
 
+pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ sex,
+                  data = Baboon_flight_KM_all,
+                  p.adjust.method = "holm")
+
+
 
 #by age
 fit_age <- survfit(surv_obj ~ age, data = Baboon_flight_KM_all)
@@ -238,3 +253,10 @@ ggsurvplot(fit_age,
            risk.table = TRUE)
 
 survdiff(surv_obj ~ age, data = Baboon_flight_KM_all)
+
+Baboon_flight_KM_all$age <- as.factor(Baboon_flight_KM_all$age)
+
+pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ age,
+                  data = Baboon_flight_KM_all,
+                  p.adjust.method = "holm")
+
