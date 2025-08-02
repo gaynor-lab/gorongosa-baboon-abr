@@ -176,3 +176,5 @@ print(Frequency_model_avg_both)
 
 #R² squared
 r2(Frequency_global_model_both)
+
+
