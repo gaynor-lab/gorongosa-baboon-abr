@@ -1,5 +1,9 @@
 #Script for generating and graphing model predictions for each behavioural response variable 
 
+#Import dataframes
+Baboon_vigilance_stats_both <- readRDS("data_derived/Baboon_vigilance_stats_both.rds")
+Baboon_frequency_stats_both <- readRDS("data_derived/Baboon_frequency_stats_both.rds")
+Baboon_flight_stats_both <- readRDS("data_derived/Baboon_flight_stats_both.rds")
 
 #PROPORTION VIGILANCE BY PREDATOR CUE BY YEAR
 # Create a new dataset with combinations of explanatory variables
@@ -11,8 +15,6 @@ vigilance_pred_only <- expand.grid(
   year = c(2021, 2024) 
 )
 
-View(vigilance_pred_only)
-View(Baboon_vigilance_stats_both)
 # Get predictions on the response scale
 vigilance_pred_only$predicted <- predict(Vigilance_global_model_both, 
                                          newdata = vigilance_pred_only, 
@@ -490,11 +492,6 @@ predicted_latency_prey_plot <-
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-
-
-
 
 
 #FREQUENCY BY PREDATOR CUE BY YEAR
