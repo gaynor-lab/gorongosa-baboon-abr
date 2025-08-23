@@ -11,6 +11,25 @@ library(performance)
 #Join 2021 and 2024 vigilance stats
 Baboon_vigilance_stats_both <- bind_rows(Baboon_vigilance_stats, Baboon_vigilance_stats_24)
 
+#Fix typo in file_name 
+Baboon_vigilance_stats_both$file_name <- gsub(
+  "^2024_F07_7260057_Baboon\\.AVI$",
+  "2024_F07_07260057_Baboon.AVI",
+  Baboon_vigilance_stats_both$file_name
+)
+
+#make new columun with month and day to test for sound habituation
+Baboon_vigilance_stats_both <- Baboon_vigilance_stats_both %>%
+  mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
+         day = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name))) %>%
+  mutate(day_number = case_when(
+    month == 6  ~ day,
+    month == 7  ~ 30 + day,
+    month == 8  ~ 61 + day,
+    month == 1  ~ day,   # in case June was labeled as January due to camera reset
+    TRUE ~ NA_real_
+  ))
+
 #change Wild dog name to match in both datasets
 Baboon_vigilance_stats_both <- Baboon_vigilance_stats_both %>%
   mutate(predator_cue = case_when(
@@ -48,7 +67,7 @@ Baboon_vigilance_stats_both$Habitat <- factor(Baboon_vigilance_stats_both$Habita
 Baboon_vigilance_stats_both$Habitat <- relevel(Baboon_vigilance_stats_both$Habitat, ref = "Open")
 
 #Global GLMM using beta distribution
-Vigilance_global_model_both <- glmmTMB(proportion_vigilant_beta ~ predator_cue * year + Habitat + age_sex_class + group_number + (1|site),
+Vigilance_global_model_both <- glmmTMB(proportion_vigilant_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
                                        data = Baboon_vigilance_stats_both,
                                        family = beta_family(),
                                        na.action = na.fail) 
@@ -128,6 +147,25 @@ r.squaredGLMM(Latency_global_model_both)
 Baboon_frequency_stats_both <- bind_rows(Baboon_frequency_stats, Baboon_frequency_stats_24)
 View(Baboon_frequency_stats_both)
 
+#Fix typo in file_name 
+Baboon_frequency_stats_both$file_name <- gsub(
+  "^2024_F07_7260057_Baboon\\.AVI$",
+  "2024_F07_07260057_Baboon.AVI",
+  Baboon_frequency_stats_both$file_name
+)
+
+#make new columun with month and day to test for sound habituation
+Baboon_frequency_stats_both <- Baboon_frequency_stats_both %>%
+  mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
+         day = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name))) %>%
+  mutate(day_number = case_when(
+    month == 6  ~ day,
+    month == 7  ~ 30 + day,
+    month == 8  ~ 61 + day,
+    month == 1  ~ day,   # in case June was labeled as January due to camera reset
+    TRUE ~ NA_real_
+  ))
+
 #change Wild dog name to match in both datasets
 Baboon_frequency_stats_both <- Baboon_frequency_stats_both %>%
   mutate(predator_cue = case_when(
@@ -159,7 +197,7 @@ Baboon_frequency_stats_both$Habitat <- factor(Baboon_frequency_stats_both$Habita
 Baboon_frequency_stats_both$Habitat <- relevel(Baboon_frequency_stats_both$Habitat, ref = "Open")
 
 #Global GLMM with binomial distribution
-Frequency_global_model_both <- glmmTMB(flight_present ~ predator_cue * year + Habitat + age_sex_class + group_number + (1|site),
+Frequency_global_model_both <- glmmTMB(flight_present ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
                                        data = Baboon_frequency_stats_both,
                                        family = binomial(),
                                        na.action = na.fail)
