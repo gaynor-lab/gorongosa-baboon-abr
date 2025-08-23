@@ -9,7 +9,7 @@ Baboon_vigilance_stats_no_cheetah <- Baboon_vigilance_stats_both %>%
 view(Baboon_vigilance_stats_no_cheetah)
 
 #Global GLMM using beta distribution
-Vigilance_global_model_no_cheetah <- glmmTMB(proportion_vigilant_beta ~ predator_cue * year + Habitat + age_sex_class + group_number + (1|site),
+Vigilance_global_model_no_cheetah <- glmmTMB(proportion_vigilant_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
                                        data = Baboon_vigilance_stats_no_cheetah,
                                        family = beta_family(),
                                        na.action = na.fail) 
@@ -60,9 +60,9 @@ r.squaredGLMM(Latency_global_model_no_cheetah)
 #remove cheetahs from predator cues
 Baboon_frequency_stats_no_cheetah <- Baboon_frequency_stats_both %>%
   filter(predator_cue != "Cheetah")
-
+View(Baboon_frequency_stats_no_cheetah)
 #Global GLMM with binomial distribution
-Frequency_global_model_no_cheetah <- glmmTMB(flight_present ~ predator_cue * year + Habitat + age_sex_class + group_number + (1|site),
+Frequency_global_model_no_cheetah <- glmmTMB(flight_present ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
                                        data = Baboon_frequency_stats_no_cheetah,
                                        family = binomial(),
                                        na.action = na.fail)
