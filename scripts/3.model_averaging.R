@@ -1,10 +1,16 @@
-#Script for model averaging for each behavioural response variable
+#Script for model averaging for proportion vigilance and flight frequency
 
 #load packages
 library(glmmTMB)
 library(dplyr)
 library(MuMIn)
 library(performance)
+
+#Import derived dataframes
+Baboon_vigilance_stats <- readRDS("data_derived/Baboon_vigilance_stats.rds")
+Baboon_vigilance_stats_24 <- readRDS("data_derived/Baboon_vigilance_stats_24.rds")
+Baboon_frequency_stats <- readRDS("data_derived/Baboon_frequency_stats.rds")
+Baboon_frequency_stats_24 <- readRDS("data_derived/Baboon_frequency_stats_24.rds")
 
 #PROPORTION OF TIME SPENT VIGILANT
 
@@ -214,5 +220,10 @@ print(Frequency_model_avg_both)
 
 #R² squared
 r2(Frequency_global_model_both)
+
+#export dataframes
+saveRDS(Baboon_vigilance_stats_both, "data_derived/Baboon_vigilance_stats_both.rds")
+saveRDS(Baboon_flight_stats_both, "data_derived/Baboon_flight_stats_both.rds")
+saveRDS(Baboon_frequency_stats_both, "data_derived/Baboon_frequency_stats_both.rds")
 
 
