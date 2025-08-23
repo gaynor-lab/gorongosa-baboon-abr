@@ -8,22 +8,21 @@ library(stringr)
 library(tidyverse)
 
 #Import second watch metadata in CSV format 
-B_21_second <- read.csv("C:/Users/sophi/OneDrive/Desktop/data-gorongosa-baboon-abr/2021_baboon_second.csv")
+B_21_second <- read.csv("data/2021_baboon_second.csv")
 
-B_24_second <- read.csv("C:/Users/sophi/OneDrive/Desktop/data-gorongosa-baboon-abr/2024_baboon_second.csv")
+B_24_second <- read.csv("data/2024_baboon_second.csv")
 
 #make file name column in second watch data to join with file_name from CVAT annotations
 B_21_second<- B_21_second %>%
   mutate(file_name = paste(Year, Camera.trap.site,video_name, sep = "_"))
-View(B_21_second)
 
 B_24_second<- B_24_second %>%
   mutate(file_name = paste(year, site,video_name, sep = "_"))
-View(B_24_second)
 
 #Dataframe join for 2024 data
+
 #Convert XML to dataframe
-xml_file_2024 <- read_xml("C:/Users/sophi/OneDrive/Desktop/data-gorongosa-baboon-abr/2024_baboon_CVAT.xml")
+xml_file_2024 <- read_xml("data/2024_baboon_CVAT.xml")
 
 # Extract all tasks (task = 1 video)
 tasks <- xml_find_all(xml_file_2024, ".//task")
@@ -103,8 +102,9 @@ Final_2024 <- Final_2024 %>%
 View(Final_2024)
 
 #Dataframe join for 2021
+
 #Convert XML to dataframe
-xml_file_2021 <- read_xml("C:/Users/sophi/OneDrive/Desktop/data-gorongosa-baboon-abr/2021_baboon_CVAT.xml")
+xml_file_2021 <- read_xml("data/2021_baboon_CVAT.xml")
 
 # Extract all tasks (task = 1 video)
 tasks <- xml_find_all(xml_file_2021, ".//task")
@@ -199,5 +199,6 @@ Final_2021 <- Final_2021 %>%
 Final_2021 <- Final_2021 %>%
   mutate(Predator.cue = if_else(is.na(Predator.cue), "No_sound", Predator.cue))
 
-View(Final_2021)
-
+#Save dataframes 
+saveRDS(Final_2021, "data_derived/Final_2021.rds")
+saveRDS(Final_2024, "data_derived/Final_2024.rds")
