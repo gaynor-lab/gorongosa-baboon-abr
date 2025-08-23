@@ -7,6 +7,7 @@ ttest_vigilance <- Baboon_vigilance_data_24 %>%
   select(file_name, proportion_vigilant, volume_change) %>%
   ungroup()
 
+View(ttest_vigilance)
 ttest_latency <- Baboon_flight_data_24 %>%
   group_by(file_name) %>%
   slice(1) %>%
@@ -40,3 +41,24 @@ wilcox.test(latency_to_flee_s ~ volume_change, data = ttest_latency)
 
 wilcox.test(flight_present ~ volume_change, data = ttest_frequency)
 #p=0.4112, no statistically significant difference
+
+
+#Spearman's rank correlation test for response intensity and volume in 2021 
+
+#read in ABR volume data 
+ABR_volume_21 <- read.csv("C:/Users/sophi/OneDrive/Desktop/data-gorongosa-baboon-abr/ABR_volumes_2021.csv")
+
+#join volume data to vigilance data
+Baboon_vigilance_stats <- Baboon_vigilance_stats %>%
+  left_join(
+    ABR_volume_21 %>% select(Site, dB_avg),
+    by = c("site" = "Site")
+  )
+
+#Spearman's rank correlation
+cor.test(
+  Baboon_vigilance_stats$dB_avg,
+  Baboon_vigilance_stats$proportion_vigilant,
+  method = "spearman",
+  use = "complete.obs"
+)
