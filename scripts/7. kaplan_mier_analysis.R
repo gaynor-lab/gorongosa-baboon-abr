@@ -1,5 +1,4 @@
-install.packages("survival")
-install.packages("survminer")
+#load packages
 library(survival)
 library(survminer)
 library(dplyr)
