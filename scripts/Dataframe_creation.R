@@ -1,7 +1,6 @@
 #Creation of dataframes for each response variable (proportion vigilance, latency to flee, flight frequency)
 
 #load packages
-library(paletteer) #for colour scheme
 library(dplyr)
 library(ggplot2)
 library(stringr)
