@@ -24,7 +24,7 @@ ttest_frequency <- Baboon_frequency_data_24 %>%
 shapiro.test(ttest_vigilance$proportion_vigilant[ttest_vigilance$volume_change == "pre"])
 #non normally distributed
 shapiro.test(ttest_vigilance$proportion_vigilant[ttest_vigilance$volume_change == "post"])
-#not normally distributeed
+#not normally distributed
 
 #check normality for latency
 shapiro.test(ttest_latency$latency_to_flee_s[ttest_latency$volume_change == "pre"])
@@ -55,10 +55,28 @@ Baboon_vigilance_stats <- Baboon_vigilance_stats %>%
     by = c("site" = "Site")
   )
 
-#Spearman's rank correlation
+#join volume data to flight data
+Baboon_frequency_stats <- Baboon_frequency_stats %>%
+  left_join(
+    ABR_volume_21 %>% select(Site, dB_avg),
+    by = c("site" = "Site")
+  )
+
+#Spearman's rank correlation for vigilance
 cor.test(
   Baboon_vigilance_stats$dB_avg,
   Baboon_vigilance_stats$proportion_vigilant,
   method = "spearman",
   use = "complete.obs"
 )
+
+#Spearman's rank correlation for flight
+cor.test(
+  Baboon_frequency_stats$dB_avg,
+  Baboon_frequency_stats$flight_present,
+  method = "spearman",
+  use = "complete.obs"
+)
+View(Baboon_frequency_stats)
+
+
