@@ -11,28 +11,12 @@ Baboon_vigilance_graph_both <- Baboon_vigilance_stats_both %>%
   mutate(predator_cue = factor(predator_cue, levels = c("Cheetah", "Wild dog", "Hyena", "Leopard", "Lion", "Control"))) %>%  # Adjust Cue names as needed
   filter(!is.na(predator_cue))  # Remove rows where predator_cue is NA
 
-#add column for hunting modes
-Baboon_vigilance_graph_both <- Baboon_vigilance_graph_both %>%
-  mutate(Hunting_mode = case_when(
-    predator_cue %in% c("Lion", "Leopard") ~ "Ambush",
-    predator_cue %in% c("Hyena", "Wild dog", "Cheetah") ~ "Coursing",
-    predator_cue %in% c("Control") ~ "Control",
-    
-  ))
-
-#reorder hunting modes
-Baboon_vigilance_graph_both$Hunting_mode <- factor(
-  Baboon_vigilance_graph_both$Hunting_mode,
-  levels = c("Coursing", "Ambush", "Control")  # put your desired legend AND plotting order here
-)
-
 #Strip plot for proportion of vigilance by predator cue - point shape 
-vigilance_year_pred_plot <- ggplot(Baboon_vigilance_graph_both, aes(x = predator_cue, y = proportion_vigilant, fill = year, shape = Hunting_mode)) +
+vigilance_year_pred_plot <- ggplot(Baboon_vigilance_graph_both, aes(x = predator_cue, y = proportion_vigilant, fill = year)) +
   geom_boxplot(alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +  
   geom_jitter(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8), size = 1.5, alpha = 0.8) +  
   scale_fill_manual(values = c("2021" = "#72874E", "2024" = "#476F84")) +  
-  scale_shape_manual(values = c("Coursing" = 24, "Ambush" = 21, "Control" = 1)) +  # Different point shapes
-  labs(x = "Predator Cue", y = "Proportion Vigilant", fill = "Year", shape = "Hunting Mode") +
+  labs(x = "Predator Cue", y = "Proportion Vigilant", fill = "Year") +
   scale_x_discrete(labels = c(
     "Lion" = "Lion",
     "Leopard" = "Leopard*",
@@ -47,16 +31,12 @@ vigilance_year_pred_plot <- ggplot(Baboon_vigilance_graph_both, aes(x = predator
 
 #PROPORTION VIGILANCE PREDATOR CUE
 vigilance_pred_plot <- ggplot(Baboon_vigilance_graph_both, 
-                              aes(x = predator_cue, y = proportion_vigilant, shape = Hunting_mode)) +
+                              aes(x = predator_cue, y = proportion_vigilant)) +
   geom_boxplot(fill = "#023743", alpha = 0.6, outlier.shape = NA, 
                position = position_dodge(width = 0.8)) +
-  geom_jitter(aes(fill = Hunting_mode), 
-              position = position_jitter(width = 0.2),
+  geom_jitter(position = position_jitter(width = 0.2),
               size = 1.5, alpha = 0.8, color = "#023743") +
-  scale_shape_manual(values = c("Coursing" = 24, "Ambush" = 22, "Control" = 21)) +
-  scale_fill_manual(values = c("Coursing" = "#023743", "Ambush" = "#023743", "Control" = "#023743"), 
-                    guide = "none") +  # Remove fill legend
-  labs(x = "Predator Cue", y = "Proportion Vigilant", shape = "Hunting Mode") +
+  labs(x = "Predator Cue", y = "Proportion Vigilant") +
   scale_x_discrete(labels = c(
     "Lion" = "Lion",
     "Leopard" = "Leopard",
@@ -66,11 +46,12 @@ vigilance_pred_plot <- ggplot(Baboon_vigilance_graph_both,
   )) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14),
-        axis.text.y = element_text(size = 14),                         # Y-axis text size
-        axis.title.x = element_text(size = 16),                        # X-axis title size
-        axis.title.y = element_text(size = 16), 
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16),
         panel.grid = element_blank(),
-        legend.position = "bottom")
+        legend.position = "none")   # fully removes legend
+
 
 #PROPORTION VIGILANCE YEAR
 vigilance_year_plot <- ggplot(Baboon_vigilance_stats_both, aes(x = year, y = proportion_vigilant)) +
@@ -104,8 +85,6 @@ vigilance_habitat_plot <- ggplot(Baboon_vigilance_stats_both, aes(x = Habitat, y
         axis.title.y = element_text(size = 16),
         panel.grid = element_blank(),
         legend.position = "none")  # Remove legend since it's unnecessary
-
-View(Baboon_vigilance_graph_both)
 
 #PROPORTION VIGILANCE PREY
 Baboon_vigilance_stats_both <- Baboon_vigilance_stats_both %>%
@@ -269,21 +248,6 @@ flight_frequency_pred <- Baboon_frequency_stats_both %>%
 flight_frequency_pred <- flight_frequency_pred %>%
   mutate(predator_cue = factor(predator_cue, levels = c("Cheetah", "Wild dog", "Hyena", "Leopard","Lion", "Control"))) %>%  # Adjust Cue names as needed
   filter(!is.na(predator_cue))  # Remove rows where predator_cue is NA
-
-#add column for hunting modes
-flight_frequency_pred <- flight_frequency_pred %>%
-  mutate(Hunting_mode = case_when(
-    predator_cue %in% c("Lion", "Leopard") ~ "Ambush",
-    predator_cue %in% c("Hyena", "Wild dog", "Cheetah") ~ "Coursing",
-    predator_cue %in% c("Control") ~ "Control",
-    
-  ))
-
-#reorder hunting modes
-flight_frequency_pred$Hunting_mode <- factor(
-  flight_frequency_pred$Hunting_mode,
-  levels = c("Coursing", "Ambush", "Control")  # put your desired legend AND plotting order here
-)
 
 #bar graph for frequency of flight by predator cue by year
 frequency_pred_year_plot <-ggplot(flight_frequency_pred, aes(x = predator_cue, y = flight_frequency, 
