@@ -12,6 +12,7 @@ vigilance_pred_only <- expand.grid(
   Habitat = factor("Open", levels = levels(Baboon_vigilance_stats_both$Habitat)),  
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_vigilance_stats_both$age_sex_class)),  
   group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = c(2021, 2024) 
 )
 
@@ -63,6 +64,7 @@ vigilance_pred_only <- expand.grid(
   Habitat = factor("Open", levels = levels(Baboon_vigilance_stats_both$Habitat)),  
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_vigilance_stats_both$age_sex_class)),  
   group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024"))
 )
 
@@ -113,6 +115,7 @@ vigilance_year_only <- expand.grid(
   Habitat = factor("Open", levels = levels(Baboon_vigilance_stats_both$Habitat)),  
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_vigilance_stats_both$age_sex_class)),  
   group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = unique(Baboon_vigilance_stats_both$year)
 )
 
@@ -158,7 +161,8 @@ vigilance_habitat_only <- expand.grid(
   predator_cue = factor("Control", levels = levels(Baboon_vigilance_stats_both$predator_cue)),  
   Habitat = unique(Baboon_vigilance_stats_both$Habitat),
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_vigilance_stats_both$age_sex_class)),
-  group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),  
+  group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024")) 
 )
 
@@ -205,6 +209,7 @@ vigilance_prey_only <- expand.grid(
   age_sex_class = unique(Baboon_vigilance_stats_both$age_sex_class),
   group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),
   offspring = factor("No", levels = levels(Baboon_vigilance_stats_both$offspring)),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024"))
 )
 
@@ -500,6 +505,7 @@ frequency_pred_only <- expand.grid(
   Habitat = factor("Open", levels = levels(Baboon_frequency_stats_both$Habitat)),  
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_frequency_stats_both$age_sex_class)),  
   group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = c(2021, 2024) 
 )
 
@@ -547,6 +553,7 @@ frequency_pred_only <- expand.grid(
   Habitat = factor("Open", levels = levels(Baboon_frequency_stats_both$Habitat)),  
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_frequency_stats_both$age_sex_class)),  
   group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024"))
 )
 
@@ -593,6 +600,7 @@ frequency_year_only <- expand.grid(
   Habitat = factor("Open", levels = levels(Baboon_frequency_stats_both$Habitat)),  
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_frequency_stats_both$age_sex_class)),  
   group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = unique(Baboon_frequency_stats_both$year)
 )
 
@@ -636,6 +644,7 @@ frequency_habitat_only <- expand.grid(
   Habitat = unique(Baboon_frequency_stats_both$Habitat),
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_frequency_stats_both$age_sex_class)),
   group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),  
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024")) 
 )
 
@@ -683,6 +692,7 @@ frequency_prey_only <- expand.grid(
   Habitat = factor("Open", levels = levels(Baboon_frequency_stats_both$Habitat)),
   age_sex_class = unique(Baboon_frequency_stats_both$age_sex_class),
   group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024"))
 )
 
