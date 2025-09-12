@@ -297,37 +297,17 @@ flight_frequency_pred_only <- flight_frequency_pred_only %>%
   mutate(predator_cue = factor(predator_cue, levels = c("Cheetah", "Wild dog", "Hyena", "Leopard","Lion", "Control"))) %>%  # Adjust Cue names as needed
   filter(!is.na(predator_cue))  # Remove rows where predator_cue is NA
 
-#add column for hunting modes
-flight_frequency_pred_only <- flight_frequency_pred_only %>%
-  mutate(Hunting_mode = case_when(
-    predator_cue %in% c("Lion", "Leopard") ~ "Ambush",
-    predator_cue %in% c("Hyena", "Wild dog", "Cheetah") ~ "Coursing",
-    predator_cue %in% c("Control") ~ "Control",
-    
-  ))
 
-#reorder hunting modes
-flight_frequency_pred_only$Hunting_mode <- factor(
-  flight_frequency_pred_only$Hunting_mode,
-  levels = c("Coursing", "Ambush", "Control")  # put your desired legend AND plotting order here
-)
-
-frequency_pred_plot <-ggplot(flight_frequency_pred_only, aes(x = predator_cue, y = flight_frequency, 
-                                                             pattern = Hunting_mode)) +
-  geom_bar_pattern(stat = "identity", 
-                   position = position_dodge(width = 0.9),
-                   fill = "#023743",  # unified fill color
-                   color = "black",
-                   pattern_fill = "black", 
-                   pattern_density = 0.2,
-                   pattern_spacing = 0.05,
-                   alpha = 0.8) +
+frequency_pred_plot <- ggplot(flight_frequency_pred_only, aes(x = predator_cue, y = flight_frequency)) +
+  geom_bar(stat = "identity", 
+           position = position_dodge(width = 0.9),
+           fill = "#023743",  # unified fill color
+           color = "black",
+           alpha = 0.8) +
   geom_errorbar(aes(ymin = flight_frequency - se, ymax = flight_frequency + se),
                 width = 0.2,
                 position = position_dodge(width = 0.9)) +
-  scale_pattern_manual(values = c("Ambush" = "stripe", "Coursing" = "circle", "Control"="none")) +
-  labs(x = "Predator Cue", y = "Frequency of Flight", 
-       pattern = "Hunting Mode") +
+  labs(x = "Predator Cue", y = "Frequency of Flight") +
   scale_x_discrete(labels = c(
     "Lion" = "Lion",
     "Leopard" = "Leopard",
@@ -337,8 +317,8 @@ frequency_pred_plot <-ggplot(flight_frequency_pred_only, aes(x = predator_cue, y
   )) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14),
-        axis.text.y = element_text(size = 14),                         # Y-axis text size
-        axis.title.x = element_text(size = 16),                        # X-axis title size
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
         axis.title.y = element_text(size = 16),
         legend.position = "right", 
         panel.grid = element_blank())
