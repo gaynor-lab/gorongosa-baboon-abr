@@ -23,20 +23,20 @@ plot_grid(
 )
 
 #LATENCY TO FLEE
-plot_grid(
-  latency_year_plot,
-  predicted_latency_year_plot,
-  latency_pred_plot,
-  predicted_latency_pred_plot,
-  latency_habitat_plot,
-  predicted_latency_habitat_plot,
-  latency_prey_plot,
-  predicted_latency_prey_plot,
-  labels = c("A", "B", "C", "D", "E", "F", "G", "H"),  # Your panel labels
-  label_size = 14,  # You can customize the size
-  ncol = 2,
-  nrow = 4
-)
+#plot_grid(
+ # latency_year_plot,
+ # predicted_latency_year_plot,
+ # latency_pred_plot,
+ # predicted_latency_pred_plot,
+  #latency_habitat_plot,
+ # predicted_latency_habitat_plot,
+ # latency_prey_plot,
+ # predicted_latency_prey_plot,
+  #labels = c("A", "B", "C", "D", "E", "F", "G", "H"),  # Your panel labels
+ # label_size = 14,  # You can customize the size
+ # ncol = 2,
+ # nrow = 4
+#)
 
 
 #FREQUENCY OF FLIGHT
