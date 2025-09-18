@@ -22,22 +22,17 @@ plot_grid(
   nrow = 4
 )
 
-#LATENCY TO FLEE
-#plot_grid(
- # latency_year_plot,
- # predicted_latency_year_plot,
- # latency_pred_plot,
- # predicted_latency_pred_plot,
-  #latency_habitat_plot,
- # predicted_latency_habitat_plot,
- # latency_prey_plot,
- # predicted_latency_prey_plot,
-  #labels = c("A", "B", "C", "D", "E", "F", "G", "H"),  # Your panel labels
- # label_size = 14,  # You can customize the size
- # ncol = 2,
- # nrow = 4
-#)
-
+#LATENCY TO FLEE - Kaplan-mier curves 
+plot_grid(
+  year_plot$plot,
+  predator_plot$plot,
+  habitat_plot$plot,
+  sex_plot$plot,
+  labels = c("A", "B", "C", "D"),  
+  label_size = 14,
+  ncol = 2,
+  nrow = 2
+)
 
 #FREQUENCY OF FLIGHT
 plot_grid(
