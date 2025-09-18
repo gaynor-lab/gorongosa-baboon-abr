@@ -53,15 +53,6 @@ Baboon_vigilance_data_24 <- Baboon_vigilance_data_24 %>%
   ) %>%
   ungroup()
 
-#add column grouping predator cues by hunting mode
-Baboon_vigilance_data_24 <- Baboon_vigilance_data_24 %>%
-  mutate(Hunting_mode = case_when(
-    predator_cue %in% c("Lion", "Cheetah") ~ "Ambush",
-    predator_cue %in% c("Hyena", "WD", "Leopard") ~ "Coursing",
-    predator_cue %in% c("Control") ~ "Control",
-    
-  ))
-
 #Dataframe for proportion vigilance model
 Baboon_vigilance_stats_24 <- Baboon_vigilance_data_24 %>%
   mutate(Habitat = case_when(
@@ -83,6 +74,7 @@ Baboon_vigilance_stats_24 <- Baboon_vigilance_data_24 %>%
   ) %>%
   drop_na(proportion_vigilant, predator_cue, Habitat, age_sex_class, group_number, offspring) #need to drop NAs from proportion vigilant where total_frames = occluded_frames
 
+#export dataframe 
 saveRDS(Baboon_vigilance_stats_24, "data_derived/Baboon_vigilance_stats_24.rds")
 
 #DATAFRAME FOR LATENCY TO FLEE
@@ -135,15 +127,6 @@ Baboon_flight_data_24 <- Baboon_flight_data_24 %>%
 Baboon_flight_data_24 <- Baboon_flight_data_24 %>%
   mutate(latency_to_flee_s = rows_until_flight / 30)
 
-#add column grouping predator cues by hunting mode
-Baboon_flight_data_24 <- Baboon_flight_data_24 %>%
-  mutate(Hunting_mode = case_when(
-    predator_cue %in% c("Lion", "Cheetah") ~ "Ambush",
-    predator_cue %in% c("Hyena", "WD", "Leopard") ~ "Coursing",
-    predator_cue %in% c("Control") ~ "Control",
-    
-  ))
-
 #Dataframe for latency to flee model
 Baboon_flight_stats_24 <- Baboon_flight_data_24 %>%
   mutate(Habitat = case_when(
@@ -166,6 +149,7 @@ Baboon_flight_stats_24 <- Baboon_flight_data_24 %>%
   drop_na(latency_to_flee, predator_cue, Habitat, age_sex_class, group_number, offspring)%>% #need to drop one video where age_sex_class is NA for analysis
   mutate(log_latency_to_flee = log(latency_to_flee + 1)) 
 
+#export dataframe
 saveRDS(Baboon_flight_stats_24, "data_derived/Baboon_flight_stats_24.rds")
 
 #DATAFRAME FOR FLIGHT FREQUENCY
@@ -193,15 +177,6 @@ Baboon_frequency_data_24 <- Baboon_frequency_data_24 %>%
   mutate(flight_present = if_else(any(str_detect(Behaviour, "Flight")), 1, 0)) %>%
   ungroup()
 
-#add column grouping predator cues by hunting mode
-Baboon_frequency_data_24 <- Baboon_frequency_data_24 %>%
-  mutate(Hunting_mode = case_when(
-    predator_cue %in% c("Lion", "Cheetah") ~ "Ambush",
-    predator_cue %in% c("Hyena", "WD", "Leopard") ~ "Coursing",
-    predator_cue %in% c("Control") ~ "Control",
-    
-  ))
-
 #Dataframe for flight frequency model
 Baboon_frequency_stats_24 <- Baboon_frequency_data_24 %>%
   mutate(Habitat = case_when(
@@ -223,9 +198,12 @@ Baboon_frequency_stats_24 <- Baboon_frequency_data_24 %>%
   ) %>%
   drop_na(predator_cue, Habitat, age_sex_class, group_number, offspring) #need to drop NAs from proportion vigilant where total_frames = occluded_frames
 
+#exportdatrat
 saveRDS(Baboon_frequency_stats_24, "data_derived/Baboon_frequency_stats_24.rds")
 
 #2021 data
+
+#import in dataframe
 Final_2021 <- readRDS("data_derived/Final_2021.rds")
 
 #DATAFRAME FOR VIGILANCE ANALYSIS
@@ -260,15 +238,6 @@ Baboon_vigilance_data <- Baboon_vigilance_data %>%
   ) %>%
   ungroup()
 
-#add column grouping predator cues by hunting mode
-Baboon_vigilance_data <- Baboon_vigilance_data %>%
-  mutate(Hunting_mode = case_when(
-    Predator.cue %in% c("Lion", "Cheetah") ~ "Ambush",
-    Predator.cue %in% c("Hyena", "Wild_dog", "Leopard") ~ "Coursing",
-    Predator.cue %in% c("Control") ~ "Control",
-    
-  ))
-
 #Dataframe for proportion vigilance model
 Baboon_vigilance_stats <- Baboon_vigilance_data %>%
   mutate(Habitat = case_when(
@@ -302,6 +271,7 @@ Baboon_vigilance_stats <- Baboon_vigilance_data %>%
     year = Year
   )
 
+#export dataframe
 saveRDS(Baboon_vigilance_stats, "data_derived/Baboon_vigilance_stats.rds")
 
 #DATAFRAME FOR LATENCY TO FLEE
@@ -387,6 +357,7 @@ Baboon_flight_stats <- Baboon_flight_data %>%
     year = Year
   )
 
+#export dataframe
 saveRDS(Baboon_flight_stats, "data_derived/Baboon_flight_stats.rds")
 
 #DATAFRAME FOR FLIGHT FREQUENCY
@@ -403,15 +374,6 @@ Baboon_frequency_data <- Baboon_frequency_data %>%
   group_by(file_name) %>% 
   mutate(flight_present = if_else(any(str_detect(Behaviour, "Flight")), 1, 0)) %>%
   ungroup()
-
-#add column grouping predator cues by hunting mode
-Baboon_frequency_data <- Baboon_frequency_data %>%
-  mutate(Hunting_mode = case_when(
-    Predator.cue %in% c("Lion", "Cheetah") ~ "Ambush",
-    Predator.cue %in% c("Hyena", "Wild_dog", "Leopard") ~ "Coursing",
-    Predator.cue %in% c("Control") ~ "Control",
-    
-  ))
 
 #Dataframe for flight frequency model
 Baboon_frequency_stats <- Baboon_frequency_data %>%
@@ -446,5 +408,8 @@ Baboon_frequency_stats <- Baboon_frequency_data %>%
     year = Year
   )
 
-saveRDS(Baboon_frequency_stats, "data_derived/Baboon_frequency_stats.rds")
+#save dataframes
+saveRDS(Baboon_vigilance_data_24, "data_derived/Baboon_vigilance_data_24.rds")
+saveRDS(Baboon_flight_data_24, "data_derived/Baboon_flight_data_24.rds")
+saveRDS(Baboon_frequency_data_24, "data_derived/Baboon_frequency_data_24.rds")
 
