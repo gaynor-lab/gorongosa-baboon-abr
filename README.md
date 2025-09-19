@@ -11,7 +11,7 @@ This repository contains R scripts to calculate antipredator response variables 
 7. Kaplan_mier analysis - This scripts runs a kaplan-mier survival analysis for latency to flee
 8. Volume change - This script test the correlation between volume of ABR and strength of antipredator behaviour
 
-Archieved scripts
+Archived scripts
 - No_cheetah_analysis
 - Sound_habituation
 - response_variance
