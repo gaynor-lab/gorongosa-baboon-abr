@@ -146,7 +146,7 @@ Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
   )
 
 #Merge 2021 and 2024 datasets 
-Baboon_flight_KM_all <- bind_rows(Baboon_flight_KM, Baboon_flight_KM_21)
+Baboon_flight_KM_all <- bind_rows(Baboon_flight_KM_24, Baboon_flight_KM_21)
 
 #change Wild dog name to match in both datasets
 Baboon_flight_KM_all <- Baboon_flight_KM_all %>%
@@ -222,7 +222,8 @@ fit_predator <- survfit(surv_obj ~ predator_cue, data = Baboon_flight_KM_all)
 predator_plot <- ggsurvplot(
   fit_predator,
   data = Baboon_flight_KM_all,
-  conf.int = TRUE,           
+  conf.int = TRUE,
+  conf.int.alpha = 0.10,
   risk.table = FALSE,
   xlab = "Latency to flee (seconds)",
   ylab = "Probability of not fleeing",
@@ -258,6 +259,7 @@ year_plot <- ggsurvplot(
   fit_year,
   data = Baboon_flight_KM_all,
   conf.int = TRUE,
+  conf.int.alpha = 0.10,
   risk.table = FALSE,
   xlab = "Latency to flee (seconds)",
   ylab = "Probability of not fleeing",
@@ -301,6 +303,7 @@ sex_plot <- ggsurvplot(
   fit_sex,
   data = Baboon_flight_age_sex,
   conf.int = TRUE,
+  conf.int.alpha = 0.10,
   risk.table = FALSE,
   xlab = "Latency to flee (seconds)",
   ylab = "Probability of not fleeing",
@@ -334,6 +337,7 @@ habitat_plot <- ggsurvplot(
   fit_habitat,
   data = Baboon_flight_KM_all,
   conf.int = TRUE,
+  conf.int.alpha = 0.10,
   risk.table = FALSE,
   xlab = "Latency to flee (seconds)",
   ylab = "Probability of not fleeing",
