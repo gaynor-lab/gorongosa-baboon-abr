@@ -6,7 +6,7 @@ library(ggplot2)
 library(cowplot)
 
 
-#PROPORTION VIGILANCE
+#PROPORTION VIGILANCE - separate plots
 plot_grid(
   vigilance_year_plot,
   predicted_vigilance_year_plot,
@@ -22,6 +22,18 @@ plot_grid(
   nrow = 4
 )
 
+#PROPORTION VIGILANCE - combined plots 
+plot_grid(
+  combined_vigilance_year_plot,
+  combined_vigilance_predator_plot,
+  combined_vigilance_habitat_plot,
+  combined_vigilance_prey_plot,
+  labels = c("A", "B", "C", "D"), 
+  label_size = 14,  
+  ncol = 2,
+  nrow = 2
+)
+
 #LATENCY TO FLEE - Kaplan-mier curves 
 plot_grid(
   year_plot$plot,
@@ -34,7 +46,7 @@ plot_grid(
   nrow = 2
 )
 
-#FREQUENCY OF FLIGHT
+#FREQUENCY OF FLIGHT - separate plots
 plot_grid(
   frequency_year_plot,
   predicted_frequency_year_plot,
@@ -48,4 +60,16 @@ plot_grid(
   label_size = 14,  # You can customize the size
   ncol = 2,
   nrow = 4
+)
+
+#FREQUENCY OF FLIGHT - combined plots
+plot_grid(
+  combined_frequency_year_plot,
+  combined_frequency_pred_plot,
+  combined_frequency_habitat_plot,
+  combined_frequency_prey_plot,
+  labels = c("A", "B", "C", "D"), 
+  label_size = 14,  
+  ncol = 2,
+  nrow = 2
 )
