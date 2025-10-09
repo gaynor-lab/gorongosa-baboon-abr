@@ -75,7 +75,13 @@ vigilance_prey_plot <-
   geom_jitter(color = "#023743FF",  
               position = position_jitter(width = 0.2),  
               size = 1.5, alpha = 0.8) +  
-  labs(x = "Age and Sex Class", y = "Proportion Vigilant") +  
+  labs(x = "Age and Sex Class", y = "Proportion Vigilant") +
+  scale_x_discrete(labels = c(
+    "Female no offspring" = "Female no \noffspring",
+    "Female with offspring" = "Female w/ \noffspring",
+    "Male" = "Male",
+    "Juvenile" = "Juvenile"
+  )) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14),
         axis.text.y = element_text(size = 14),                         
