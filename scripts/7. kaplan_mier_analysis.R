@@ -205,7 +205,7 @@ km_plot$plot <- km_plot$plot +
     panel.grid.minor = element_blank(),    
     panel.grid.major = element_line(color = "grey80"),  
     axis.text = element_text(size = 10),   
-    axis.title = element_text(size = 12),
+    axis.title = element_text(size = 20),
     legend.position = "none"
   ) +
   coord_cartesian(ylim = c(0.75, 1))  # zoom without dropping rows
