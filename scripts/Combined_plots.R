@@ -163,6 +163,11 @@ combined_vigilance_prey_plot <- ggplot() +
     size = 1.5, alpha = 0.5, color = "#023743",
     position = position_jitter(width = 0.15)
   ) +
+  scale_x_discrete(labels = c(
+    "Female no offspring" = "Female no \noffspring",
+    "Female with offspring" = "Female w/ \noffspring",
+    "Male" = "Male"
+  )) +
   # Model predictions (points + error bars)
   geom_point(
     data = vigilance_prey_only,
@@ -198,7 +203,7 @@ combined_vigilance_prey_plot <- ggplot() +
 
 # Flight by predator cue
 combined_frequency_pred_plot <- ggplot() +
-  # Observed bar plot with SE error bars
+  # Observed bar plot (no error bars)
   geom_bar(
     data = flight_frequency_pred_only,
     aes(x = predator_cue, y = flight_frequency, fill = "Observed"),
@@ -206,16 +211,7 @@ combined_frequency_pred_plot <- ggplot() +
     position = position_dodge(width = 0.9),
     color = "black", alpha = 0.8
   ) +
-  geom_errorbar(
-    data = flight_frequency_pred_only,
-    aes(x = predator_cue,
-        ymin = flight_frequency - se,
-        ymax = flight_frequency + se,
-        color = "Observed"),
-    width = 0.2,
-    position = position_dodge(width = 0.9)
-  ) +
-  # Predicted values with CI
+  # Predicted values with CI (keep error bars)
   geom_point(
     data = frequency_pred_only,
     aes(x = predator_cue, y = predicted, color = "Predicted"),
@@ -241,9 +237,9 @@ combined_frequency_pred_plot <- ggplot() +
     fill = "none",  # remove duplicate observed fill legend
     color = guide_legend(
       override.aes = list(
-        shape = c(NA, 16),         # no shape for observed, circle for predicted
-        linetype = c(1, 1),        # keep errorbars
-        fill = c("#023743", NA)    # observed bar color, none for predicted
+        shape = c(16),          # only predicted points show up in legend
+        linetype = c(1),
+        color = c("khaki3")
       )
     )
   ) +
@@ -260,7 +256,7 @@ combined_frequency_pred_plot <- ggplot() +
     axis.text.y = element_text(size = 14),
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
-    legend.position = "top",
+    legend.position = "none",
     legend.text = element_text(size = 12),
     panel.grid = element_blank()
   )
@@ -268,22 +264,13 @@ combined_frequency_pred_plot <- ggplot() +
 
 # Flight by year
 combined_frequency_year_plot <- ggplot() +
-  # Observed bar plot with SE
+  # Observed bar plot (no error bars)
   geom_bar(
     data = flight_frequency_year,
     aes(x = year, y = flight_frequency, fill = "Observed"),
     stat = "identity",
     width = 0.6,
     color = "black", alpha = 0.8
-  ) +
-  geom_errorbar(
-    data = flight_frequency_year,
-    aes(x = year,
-        ymin = flight_frequency - se,
-        ymax = flight_frequency + se,
-        color = "Observed"),
-    width = 0.2,
-    position = position_dodge(width = 0.6)
   ) +
   # Predicted values with CI
   geom_point(
@@ -308,12 +295,12 @@ combined_frequency_year_plot <- ggplot() +
   scale_fill_manual(values = c("Observed" = "#023743FF")) +
   scale_color_manual(values = c("Observed" = "#023743FF", "Predicted" = "khaki3")) +
   guides(
-    fill = "none", # hide duplicate fill legend
+    fill = "none",  # remove duplicate observed fill legend
     color = guide_legend(
       override.aes = list(
-        shape = c(NA, 16),          # no point for bar, circle for predicted
-        linetype = c(1, 1),         # keep errorbar lines
-        fill = c("#023743FF", NA)   # blue bar fill for observed
+        shape = c(16),        # only predicted point appears in legend
+        linetype = c(1),
+        color = c("khaki3")   # predicted = khaki3
       )
     )
   ) +
@@ -324,29 +311,20 @@ combined_frequency_year_plot <- ggplot() +
     axis.text.y = element_text(size = 14),
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
-    legend.position = "top",
+    legend.position = "none",
     legend.text = element_text(size = 12)
   )
 
 
 # Flight by habitat
 combined_frequency_habitat_plot <- ggplot() +
-  # Observed bar plot with SE
+  # Observed bar plot (no error bars)
   geom_bar(
     data = flight_frequency_habitat,
     aes(x = Habitat, y = flight_frequency, fill = "Observed"),
     stat = "identity",
     width = 0.6,
     color = "black", alpha = 0.8
-  ) +
-  geom_errorbar(
-    data = flight_frequency_habitat,
-    aes(x = Habitat,
-        ymin = flight_frequency - se,
-        ymax = flight_frequency + se,
-        color = "Observed"),
-    width = 0.2,
-    position = position_dodge(width = 0.6)
   ) +
   # Predicted values with CI
   geom_point(
@@ -365,17 +343,18 @@ combined_frequency_habitat_plot <- ggplot() +
   labs(
     x = "Habitat",
     y = "Frequency of Flight",
-    color = "", fill = ""
+    color = "",
+    fill = ""
   ) +
   scale_fill_manual(values = c("Observed" = "#023743FF")) +
   scale_color_manual(values = c("Observed" = "#023743FF", "Predicted" = "khaki3")) +
   guides(
-    fill = "none", # hide duplicate fill legend
+    fill = "none",  
     color = guide_legend(
       override.aes = list(
-        shape = c(NA, 16),      # no shape for bar, point for predicted
-        linetype = c(1, 1),     # keep errorbar line
-        fill = c("#023743FF", NA) # bar fill for observed
+        shape = c(16),        
+        linetype = c(1),
+        color = c("khaki3")   
       )
     )
   ) +
@@ -386,14 +365,14 @@ combined_frequency_habitat_plot <- ggplot() +
     axis.text.y = element_text(size = 14),
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
-    legend.position = "top",
+    legend.position = "none",
     legend.text = element_text(size = 12)
   )
-
+                               
 
 #flight by age-sex class
 combined_frequency_prey_plot <- ggplot() +
-  # Observed: bars with SE
+  # Observed: bars only (no error bars)
   geom_bar(
     data = Baboon_frequency_graph_both,
     aes(x = age_sex_class, y = flight_frequency, fill = "Observed"),
@@ -401,15 +380,6 @@ combined_frequency_prey_plot <- ggplot() +
     width = 0.6,
     alpha = 0.8,
     color = "black"
-  ) +
-  geom_errorbar(
-    data = Baboon_frequency_graph_both,
-    aes(x = age_sex_class,
-        ymin = flight_frequency - se,
-        ymax = flight_frequency + se,
-        color = "Observed"),
-    width = 0.2,
-    position = position_dodge(width = 0.6)
   ) +
   # Predicted: points with CI
   geom_point(
@@ -433,6 +403,22 @@ combined_frequency_prey_plot <- ggplot() +
   ) +
   scale_fill_manual(values = c("Observed" = "#023743FF"), guide = "none") +  # remove duplicate
   scale_color_manual(values = c("Observed" = "#023743FF", "Predicted" = "khaki3")) +
+  guides(
+    fill = "none",  
+    color = guide_legend(
+      override.aes = list(
+        shape = c(16),        
+        linetype = c(1),
+        color = c("khaki3")   
+      )
+    )
+  ) +
+  scale_x_discrete(labels = c(
+    "Female no offspring" = "Female no \noffspring",
+    "Female with offspring" = "Female w/ \noffspring",
+    "Male" = "Male",
+    "Juvenile" = "Juvenile"
+  )) +
   theme_minimal() +
   theme(
     panel.grid = element_blank(),
@@ -440,6 +426,7 @@ combined_frequency_prey_plot <- ggplot() +
     axis.text.y = element_text(size = 14),
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
-    legend.position = "top",
+    legend.position = "none",
     legend.text = element_text(size = 12)
   )
+
