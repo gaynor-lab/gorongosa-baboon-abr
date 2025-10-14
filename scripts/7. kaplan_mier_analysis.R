@@ -64,7 +64,7 @@ Baboon_flight_KM_24 <- Baboon_flight_KM_24 %>%
     .groups = "drop"
   )
 
-#Create dataframe for flight including non-flight "censored" data - 2021 (same steps)
+#Create dataframe for flight including non-flight "censored" data - 2021 
 
 #filter videos that have No_sound or sound.quality = poor or a sound delay as they will not be included in analysis
 Baboon_flight_KM_21 <- Final_2021 %>%
@@ -98,22 +98,25 @@ Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
   mutate(flight_present = if_else(any(str_detect(Behaviour, "Flight")), 1, 0)) %>%
   ungroup()
 
-# Calculate latency to flee per file_name
+
+#Calculate latency to flee
 Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
+  filter(file_name != "2021_E02_08030006_Baboon.AVI") %>% #video got duplicated
   group_by(file_name) %>%
-  arrange(frame) %>%
+  arrange(.data$frame) %>%
   mutate(
-    total_rows = n(),
-    first_frame = min(frame),
-    first_flight_frame = if (any(Behaviour == "Flight")) min(frame[Behaviour == "Flight"]) else NA_integer_,
+    first_row = first(row_number()),
+    first_flight_row = match("Flight", Behaviour),
+    
+    # if no flight occurred, set rows_until_flight to total number of rows in the video
     rows_until_flight = if_else(
-      flight_present == 1 & !is.na(first_flight_frame),
-      first_flight_frame - first_frame,
-      total_rows
+      flight_present == 1 & !is.na(first_flight_row),
+      first_flight_row - first_row,
+      n()  
     ),
-    latency_to_flee_s = rows_until_flight / 30
+    
+    latency_to_flee_s = rows_until_flight / 30  # convert to seconds
   ) %>%
-  # NOW collapse to 1 row per video
   summarise(
     latency_to_flee_s = first(latency_to_flee_s),
     flight_present = first(flight_present),
@@ -126,7 +129,7 @@ Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
     Camera.trap.site = first(Camera.trap.site),
     .groups = "drop"
   )
-
+View(Baboon_flight_KM_21)
 #change offspring row to be numeric
 Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
   mutate(
@@ -176,10 +179,7 @@ Baboon_flight_KM_all <- Baboon_flight_KM_all %>%
     )
   )
 
-########remove outliers (FIX ERRORS IN CALCS HERE) ########
-Baboon_flight_KM_all <- Baboon_flight_KM_all %>%
-  filter(!file_name %in% c("2021_E02_08010107_Baboon.AVI", "2021_E02_08030006_Baboon.AVI"))
-
+View(Baboon_flight_KM_all)
 # Create the survival object
 surv_obj <- Surv(time = Baboon_flight_KM_all$latency_to_flee_s, 
                  event = Baboon_flight_KM_all$flight_present)
