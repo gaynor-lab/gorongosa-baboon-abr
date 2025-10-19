@@ -89,6 +89,13 @@ summary(Vigilance_model_avg_both)
 print(Vigilance_model_avg_both)
 formula(Vigilance_models_both)
 
+#extract model weights
+importance_values <- sw(Vigilance_model_avg_both)
+importance_values
+
+# 95% confidence intervals for averaged parameters
+confint(Vigilance_model_avg_both, level = 0.95)
+
 #R-squared 
 r.squaredGLMM(Vigilance_global_model_both)
 
@@ -215,10 +222,16 @@ Frequency_models_both <- dredge(Frequency_global_model_both)
 Frequency_model_avg_both <- model.avg(Frequency_models_both)
 
 # Get model-averaged results
-summary(Frequency_model_avg_both)
 print(Frequency_model_avg_both)
 
-#R² squared
+#extract model weights
+importance_values <- sw(Frequency_model_avg_both)
+importance_values
+
+# 95% confidence intervals for averaged parameters
+confint(Frequency_model_avg_both, level = 0.95)
+
+# R² squared
 r2(Frequency_global_model_both)
 
 #export dataframes
