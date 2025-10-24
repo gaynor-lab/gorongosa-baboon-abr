@@ -8,7 +8,9 @@ library(sf)
 library(ggplot2)
 library(rnaturalearth)
 library(rnaturalearthdata)
+library(wdpar)
 
+install.packages("geojsonio")
 #read in data here
 ABR_data <- read.csv("data/ABR_locations.csv")
 
@@ -39,31 +41,31 @@ leaflet(ABR_data) %>%
   )
 
 #Plot map of Gorongosa National Park
-# Get Mozambique boundaries
-moz <- ne_countries(country = "Mozambique", scale = "medium", returnclass = "sf")
 
-# Create a data frame for Gorongosa National Park
-gorongosa <- data.frame(
-  name = "Gorongosa National Park",
-  lon = 34.36,
-  lat = -18.68
-)
+# Create a clean directory for the shapefile download
+temp_dir <- "C:/Users/sophi/Downloads/wdpa_temp"
+dir.create(temp_dir, showWarnings = FALSE)
 
-# Convert to sf object
-gorongosa_sf <- st_as_sf(gorongosa, coords = c("lon", "lat"), crs = 4326)
+# Fetch Mozambique protected areas
+moz <- wdpa_fetch("Mozambique", download_dir = temp_dir, wait = TRUE)
 
-#plot the map
-ggplot() +
-  geom_sf(data = moz, fill = "lightgray", color = "black") +
-  geom_sf(data = gorongosa_sf, color = "darkred", size = 3) +
-  geom_text(
+#Filter to just Gorongosa data
+gorongosa <- moz[grepl("Gorongosa", moz$NAME, ignore.case = TRUE), ]
+
+#Create leaflet map and overlay park outline
+leaflet() %>%
+  addProviderTiles("USGS.USTopo") %>%
+  addPolygons(
     data = gorongosa,
-    aes(x = lon, y = lat, label = "Gorongosa NP"),
-    nudge_y = -1, color = "darkred", size = 3
-  ) +
-  coord_sf(xlim = c(30, 41), ylim = c(-27, -10), expand = FALSE) +
-  labs(
-    title = "Location of Gorongosa National Park within Mozambique",
-    x = "Longitude", y = "Latitude"
-  ) +
-  theme_minimal()
+    color = "darkgreen",  
+    weight = 2,               
+    opacity = 0.9,
+    label = ~NAME
+  ) %>%
+  addScaleBar(position = "bottomright") %>%
+  addControl(
+    html = "<div style='font-size:16px; font-weight:bold;'>↑<br>N</div>",
+    position = "topright"
+  )
+
+
