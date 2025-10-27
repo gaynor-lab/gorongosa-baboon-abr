@@ -2,8 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+.RDataTmp
+
 # Ignore all data files
 # Ignore all data files
 data_raw/
 data/
-.RDataTmp
