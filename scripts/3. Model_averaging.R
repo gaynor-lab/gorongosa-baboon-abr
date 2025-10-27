@@ -238,5 +238,4 @@ r2(Frequency_global_model_both)
 saveRDS(Baboon_vigilance_stats_both, "data_derived/Baboon_vigilance_stats_both.rds")
 saveRDS(Baboon_flight_stats_both, "data_derived/Baboon_flight_stats_both.rds")
 saveRDS(Baboon_frequency_stats_both, "data_derived/Baboon_frequency_stats_both.rds")
-
-
+                 
