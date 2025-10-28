@@ -1,5 +1,9 @@
 #Model predictions fixed effects
 
+#Import dataframes
+Vigilance_global_model_both <- readRDS("data_derived/Vigilance_global_model_both.rds")
+Frequency_global_model_both <- readRDS("data_derived/Frequency_global_model_both.rds")
+
 # Predicted vigilance by predator cue
 vigilance_fixed_pred_only <- ggpredict(
   Vigilance_global_model_both,
