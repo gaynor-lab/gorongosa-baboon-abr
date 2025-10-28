@@ -46,7 +46,6 @@ Baboon_vigilance_stats_both <- Baboon_vigilance_stats_both %>%
 #fix issue with spacing in predator cues
 Baboon_vigilance_stats_both <- Baboon_vigilance_stats_both %>%
   mutate(predator_cue = str_trim(predator_cue))
-table(Baboon_vigilance_stats_both$predator_cue, Baboon_vigilance_stats_both$year)
 
 #Transform data for beta distribution using Smithson & Verkuilen transformation
 #this is needed because beta distribution requires values to be 0<x<1 but in proportion_vigilance we have exact 0s and 1s
@@ -106,7 +105,6 @@ vigilance_top_models <- subset(model_selection_table, delta < 2)
 
 #Join 2021 and 2024 frequency stats
 Baboon_frequency_stats_both <- bind_rows(Baboon_frequency_stats, Baboon_frequency_stats_24)
-View(Baboon_frequency_stats_both)
 
 #Fix typo in file_name 
 Baboon_frequency_stats_both$file_name <- gsub(
@@ -137,7 +135,6 @@ Baboon_frequency_stats_both <- Baboon_frequency_stats_both %>%
 #fix spacing issue
 Baboon_frequency_stats_both <- Baboon_frequency_stats_both %>%
   mutate(predator_cue = str_trim(predator_cue))
-table(Baboon_frequency_stats_both$predator_cue, Baboon_frequency_stats_both$year)
 
 #Ensure all refrence levels are consistent across models
 
