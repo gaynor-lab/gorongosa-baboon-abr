@@ -171,7 +171,7 @@ print(Frequency_model_avg_both)
 
 #extract model weights
 Frequency_model_weights <- sw(Frequency_model_avg_both)
-
+View(Frequency_model_weights)
 # 95% confidence intervals for averaged parameters
 confint(Frequency_model_avg_both, level = 0.95)
 
@@ -186,3 +186,5 @@ frequency_top_models <- subset(frequency_model_selection_table, delta < 2)
 saveRDS(Baboon_vigilance_stats_both, "data_derived/Baboon_vigilance_stats_both.rds")
 saveRDS(Baboon_flight_stats_both, "data_derived/Baboon_flight_stats_both.rds")
 saveRDS(Baboon_frequency_stats_both, "data_derived/Baboon_frequency_stats_both.rds")
+saveRDS(Baboon_frequency_stats_both, "data_derived/Vigilance_global_model_both.rds")
+saveRDS(Baboon_frequency_stats_both, "data_derived/Frequency_global_model_both.rds")
