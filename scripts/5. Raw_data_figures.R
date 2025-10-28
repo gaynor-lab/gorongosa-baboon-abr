@@ -44,8 +44,6 @@ vigilance_year_plot <- ggplot(Baboon_vigilance_stats_both, aes(x = year, y = pro
 
 
 #PROPORTION VIGILANCE HABITAT
-
-#Strip plot for proportion of vigilance by habitat
 vigilance_habitat_plot <- ggplot(Baboon_vigilance_stats_both, aes(x = Habitat, y = proportion_vigilant)) +
   geom_boxplot(fill = "#023743FF", alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +  # Set single fill color
   geom_jitter(color = "#023743FF",  
