@@ -98,7 +98,6 @@ Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
   mutate(flight_present = if_else(any(str_detect(Behaviour, "Flight")), 1, 0)) %>%
   ungroup()
 
-
 #Calculate latency to flee
 Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
   filter(file_name != "2021_E02_08030006_Baboon.AVI") %>% #video got duplicated
@@ -129,7 +128,7 @@ Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
     Camera.trap.site = first(Camera.trap.site),
     .groups = "drop"
   )
-View(Baboon_flight_KM_21)
+
 #change offspring row to be numeric
 Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
   mutate(
@@ -201,14 +200,15 @@ km_plot <- ggsurvplot(
 
 # Modify plot
 km_plot$plot <- km_plot$plot +
+  scale_color_manual(values = "black") +
   theme(
     panel.grid.minor = element_blank(),    
     panel.grid.major = element_line(color = "grey80"),  
-    axis.text = element_text(size = 10),   
+    axis.text = element_text(size = 15),   
     axis.title = element_text(size = 20),
     legend.position = "none"
   ) +
-  coord_cartesian(ylim = c(0.75, 1))  # zoom without dropping rows
+  coord_cartesian(ylim = c(0.75, 1))
 
 #KM plot for predator cue
 
