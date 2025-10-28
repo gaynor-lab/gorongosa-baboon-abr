@@ -24,7 +24,7 @@ Baboon_vigilance_stats_both$file_name <- gsub(
   Baboon_vigilance_stats_both$file_name
 )
 
-#make new columun with month and day to test for sound habituation
+#make new column with month and day to test for sound habituation
 Baboon_vigilance_stats_both <- Baboon_vigilance_stats_both %>%
   mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
          day = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name))) %>%
@@ -90,8 +90,7 @@ print(Vigilance_model_avg_both)
 formula(Vigilance_models_both)
 
 #extract model weights
-importance_values <- sw(Vigilance_model_avg_both)
-importance_values
+vigilance_model_weights <- sw(Vigilance_model_avg_both)
 
 # 95% confidence intervals for averaged parameters
 confint(Vigilance_model_avg_both, level = 0.95)
@@ -99,60 +98,9 @@ confint(Vigilance_model_avg_both, level = 0.95)
 #R-squared 
 r.squaredGLMM(Vigilance_global_model_both)
 
-#LATENCY TO FLEE
-
-#Join 2021 and 2024 flight stats
-Baboon_flight_stats_both <- bind_rows(Baboon_flight_stats, Baboon_flight_stats_24)
-View(Baboon_flight_stats_both)
-
-#change Wild dog name to match in both datasets
-Baboon_flight_stats_both <- Baboon_flight_stats_both %>%
-  mutate(predator_cue = case_when(
-    predator_cue %in% c("WD", "Wild_dog") ~ "Wild dog",
-    TRUE ~ predator_cue  # Keep all other values as they are
-  ))
-
-#fix spacing issue in predator names
-Baboon_flight_stats_both <- Baboon_flight_stats_both %>%
-  mutate(predator_cue = str_trim(predator_cue))
-table(Baboon_flight_stats_both$predator_cue, Baboon_flight_stats_both$year)
-
-#Ensure reference levels are consisent across all models
-
-#set 2021 as refrence level
-Baboon_flight_stats_both <- Baboon_flight_stats_both %>%
-  mutate(year = factor(year, levels = c(2021, 2024)))
-
-#set control as reference level for predator_cue
-Baboon_flight_stats_both <- Baboon_flight_stats_both %>%
-  mutate(predator_cue = relevel(factor(predator_cue), ref = "Control"))
-
-#set female adult as reference level
-Baboon_flight_stats_both$age_sex_class <- factor(Baboon_flight_stats_both$age_sex_class)
-Baboon_flight_stats_both$age_sex_class <- relevel(Baboon_flight_stats_both$age_sex_class, ref = "Female_Adult_no_offspring")
-
-#set open habitat as reference level
-Baboon_flight_stats_both$Habitat <- factor(Baboon_flight_stats_both$Habitat)
-Baboon_flight_stats_both$Habitat <- relevel(Baboon_flight_stats_both$Habitat, ref = "Open")
-
-#Global GLMM with gaussian (normal) distribution
-Latency_global_model_both <- glmmTMB(log_latency_to_flee ~ predator_cue * year + Habitat + age_sex_class + group_number + (1|site),
-                                     data = Baboon_flight_stats_both,
-                                     family = gaussian(),
-                                     na.action = na.fail)
-
-#generate model set
-Latency_models_both <- dredge(Latency_global_model_both)
-
-# Model averaging based on AIC
-Latency_model_avg_both <- model.avg(Latency_models_both)
-
-# Get model-averaged results
-summary(Latency_model_avg_both)
-print(Latency_model_avg_both)
-
-#R-squared
-r.squaredGLMM(Latency_global_model_both)
+#Extract top models
+vigilance_model_selection_table <- as.data.frame(Vigilance_models_both)
+vigilance_top_models <- subset(model_selection_table, delta < 2)
 
 #FLIGHT FREQUENCY
 
@@ -225,8 +173,7 @@ Frequency_model_avg_both <- model.avg(Frequency_models_both)
 print(Frequency_model_avg_both)
 
 #extract model weights
-importance_values <- sw(Frequency_model_avg_both)
-importance_values
+Frequency_model_weights <- sw(Frequency_model_avg_both)
 
 # 95% confidence intervals for averaged parameters
 confint(Frequency_model_avg_both, level = 0.95)
@@ -234,8 +181,11 @@ confint(Frequency_model_avg_both, level = 0.95)
 # R² squared
 r2(Frequency_global_model_both)
 
+#Extract top models
+frequency_model_selection_table <- as.data.frame(Frequency_models_both)
+frequency_top_models <- subset(frequency_model_selection_table, delta < 2)
+
 #export dataframes
 saveRDS(Baboon_vigilance_stats_both, "data_derived/Baboon_vigilance_stats_both.rds")
 saveRDS(Baboon_flight_stats_both, "data_derived/Baboon_flight_stats_both.rds")
 saveRDS(Baboon_frequency_stats_both, "data_derived/Baboon_frequency_stats_both.rds")
-                 
