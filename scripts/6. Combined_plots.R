@@ -53,7 +53,7 @@ combined_vigilance_predator_plot <- ggplot() +
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
     panel.grid = element_blank(),
-    legend.position = "top"
+    legend.position = "none"
   )
 
 #vigilance by year
@@ -145,7 +145,7 @@ combined_vigilance_habitat_plot <- ggplot() +
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
     panel.grid = element_blank(),
-    legend.position = "top"
+    legend.position = "none"
   )
 
 #vigilance by age-sex class
@@ -196,7 +196,7 @@ combined_vigilance_prey_plot <- ggplot() +
     axis.title.x = element_text(size = 16),
     axis.title.y = element_text(size = 16),
     panel.grid = element_blank(),
-    legend.position = "top"
+    legend.position = "none"
   )
 
 #FREQUENCY OF FLIGHT 
