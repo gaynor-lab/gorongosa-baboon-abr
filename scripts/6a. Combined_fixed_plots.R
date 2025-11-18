@@ -149,6 +149,19 @@ combined_vigilance_habitat_plot <- ggplot() +
   )
 
 #vigilance by age-sex class
+
+
+#Fix mismatched labels
+# For observed data
+Baboon_vigilance_stats_both$age_sex_class <- recode_factor(
+  Baboon_vigilance_stats_both$age_sex_class,
+  "Female Adult no offspring" = "Female no offspring",
+  "Female Adult with offspring" = "Female with offspring",
+  "Male Adult" = "Male",
+  "Juvenile" = "Juvenile"
+)
+
+
 combined_vigilance_prey_plot <- ggplot() +
   # Boxplot with jittered raw data
   geom_boxplot(
@@ -165,7 +178,7 @@ combined_vigilance_prey_plot <- ggplot() +
   ) +
   scale_x_discrete(labels = c(
     "Female no offspring" = "Female no \noffspring",
-    "Female with offspring" = "Female w/ \noffspring",
+    "Female with offspring" = "Female with \noffspring",
     "Male" = "Male"
   )) +
   # Model predictions (points + error bars)
