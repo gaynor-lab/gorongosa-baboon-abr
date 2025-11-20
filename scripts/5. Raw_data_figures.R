@@ -4,8 +4,13 @@
 library(ggpattern)
 library(ggplot2)
 
+#import dataframes
+Baboon_vigilance_stats_both <- readRDS("data_derived/Baboon_vigilance_stats_both.rds")
+Baboon_frequency_stats_both <- readRDS("data_derived/Baboon_frequency_stats_both.rds")
+
+
 #PROPORTION VIGILANCE PREDATOR CUE
-vigilance_pred_plot <- ggplot(Baboon_vigilance_graph_both, 
+vigilance_pred_plot <- ggplot(Baboon_vigilance_stats_both, 
                               aes(x = predator_cue, y = proportion_vigilant)) +
   geom_boxplot(fill = "#023743", alpha = 0.6, outlier.shape = NA, 
                position = position_dodge(width = 0.8)) +
