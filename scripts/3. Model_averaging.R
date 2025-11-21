@@ -172,6 +172,7 @@ print(Frequency_model_avg_both)
 #extract model weights
 Frequency_model_weights <- sw(Frequency_model_avg_both)
 View(Frequency_model_weights)
+
 # 95% confidence intervals for averaged parameters
 confint(Frequency_model_avg_both, level = 0.95)
 
