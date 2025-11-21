@@ -5,6 +5,7 @@ library(glmmTMB)
 library(dplyr)
 library(MuMIn)
 library(performance)
+library(stringr)
 
 #Import derived dataframes
 Baboon_vigilance_stats <- readRDS("data_derived/Baboon_vigilance_stats.rds")
@@ -99,7 +100,7 @@ r.squaredGLMM(Vigilance_global_model_both)
 
 #Extract top models
 vigilance_model_selection_table <- as.data.frame(Vigilance_models_both)
-vigilance_top_models <- subset(model_selection_table, delta < 2)
+vigilance_top_models <- subset(vigilance_model_selection_table, delta < 2)
 
 #FLIGHT FREQUENCY
 
@@ -136,13 +137,13 @@ Baboon_frequency_stats_both <- Baboon_frequency_stats_both %>%
 Baboon_frequency_stats_both <- Baboon_frequency_stats_both %>%
   mutate(predator_cue = str_trim(predator_cue))
 
-#Ensure all refrence levels are consistent across models
+#Ensure all reference levels are consistent across models
 
 #set control as reference level for Predator.cue
 Baboon_frequency_stats_both <- Baboon_frequency_stats_both %>%
   mutate(predator_cue = relevel(factor(predator_cue), ref = "Control"))
 
-#set 2021 as refrence level
+#set 2021 as reference level
 Baboon_frequency_stats_both <- Baboon_frequency_stats_both %>%
   mutate(year = factor(year, levels = c(2021, 2024)))
 
@@ -183,9 +184,9 @@ r2(Frequency_global_model_both)
 frequency_model_selection_table <- as.data.frame(Frequency_models_both)
 frequency_top_models <- subset(frequency_model_selection_table, delta < 2)
 
-#export dataframes
+#export data frames
 saveRDS(Baboon_vigilance_stats_both, "data_derived/Baboon_vigilance_stats_both.rds")
 saveRDS(Baboon_flight_stats_both, "data_derived/Baboon_flight_stats_both.rds")
 saveRDS(Baboon_frequency_stats_both, "data_derived/Baboon_frequency_stats_both.rds")
-saveRDS(Baboon_frequency_stats_both, "data_derived/Vigilance_global_model_both.rds")
-saveRDS(Baboon_frequency_stats_both, "data_derived/Frequency_global_model_both.rds")
+saveRDS(Vigilance_global_model_both, "data_derived/Vigilance_global_model_both.rds")
+saveRDS(Frequency_global_model_both, "data_derived/Frequency_global_model_both.rds")
