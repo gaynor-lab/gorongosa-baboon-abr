@@ -30,15 +30,6 @@ vigilance_avg_habitat_only <- ggpredict(Vigilance_global_model_both, terms = "Ha
 vigilance_avg_prey_only <- ggpredict(Vigilance_global_model_both, terms = "age_sex_class", bias_correction = TRUE) %>%
   rename(age_sex_class = x)
 
-#change age-sex class names for graphing
-vigilance_avg_prey_only <- vigilance_avg_prey_only %>%
-  mutate(age_sex_class = case_when(
-    age_sex_class %in% c("Female_Adult_no_offspring") ~ "Female no offspring",
-    age_sex_class %in% c("Female_Adult_with_offspring") ~ "Female with offspring",
-    age_sex_class %in% c("Male_Adult") ~ "Male",
-    TRUE ~ age_sex_class
-  ))
-
 #remove added NA rows
 vigilance_avg_prey_only <- vigilance_avg_prey_only %>%
   filter(!if_all(everything(), is.na))

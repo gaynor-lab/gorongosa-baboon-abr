@@ -40,16 +40,6 @@ vigilance_fixed_prey_only <- ggpredict(
 ) %>%
   rename(age_sex_class = x)
 
-#change age-sex class names for graphing
-vigilance_fixed_prey_only <- vigilance_fixed_prey_only %>%
-  mutate(age_sex_class = case_when(
-    age_sex_class %in% c("Female_Adult_no_offspring") ~ "Female no offspring",
-    age_sex_class %in% c("Female_Adult_with_offspring") ~ "Female with offspring",
-    age_sex_class %in% c("Male_Adult") ~ "Male",
-    TRUE ~ age_sex_class
-  ))
-View(vigilance_fixed_prey_only)
-
 #remove added NA rows
 vigilance_fixed_prey_only <- vigilance_fixed_prey_only %>%
   filter(!if_all(everything(), is.na))

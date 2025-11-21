@@ -1,5 +1,9 @@
 #combined fixed plots
 
+#import dataframes
+Baboon_vigilance_stats_both <- readRDS("data_derived/Baboon_vigilance_stats_both.rds")
+Baboon_frequency_stats_both <- readRDS("data_derived/Baboon_frequency_stats_both.rds")
+
 #PROPORTION VIGILANCE 
 
 #Vigilance by predator cue 
@@ -7,7 +11,7 @@
 combined_fixed_vigilance_predator_plot <- ggplot() +
   # Boxplot with jittered raw data
   geom_boxplot(
-    data = Baboon_vigilance_graph_both,
+    data = Baboon_vigilance_stats_both,
     aes(x = predator_cue, y = proportion_vigilant, fill = "Observed"),
     alpha = 0.6, outlier.shape = NA, 
     position = position_dodge(width = 0.9), width = 0.6
@@ -183,9 +187,9 @@ combined_fixed_vigilance_prey_plot <- ggplot() +
     color = ""
   ) +
   scale_x_discrete(labels = c(
-    "Female no offspring" = "Female no \noffspring",
-    "Female with offspring" = "Female w/ \noffspring",
-    "Male" = "Male",
+    "Female_Adult_no_offspring" = "Female no \noffspring",
+    "Female_Adult_with_offspring" = "Female w/ \noffspring",
+    "Male_Adult" = "Male",
     "Juvenile" = "Juvenile"
   )) +
   scale_fill_manual(values = c("Observed" = "#023743")) +
