@@ -1,5 +1,8 @@
 #Script for generating and graphing model predictions for each behavioural response variable 
 
+#load packages
+library(ggplot2)
+
 #Import dataframes
 Baboon_vigilance_stats_both <- readRDS("data_derived/Baboon_vigilance_stats_both.rds")
 Baboon_frequency_stats_both <- readRDS("data_derived/Baboon_frequency_stats_both.rds")
