@@ -2,10 +2,19 @@
 
 #load packages
 library(ggplot2)
+library(dplyr)
 
 #Import dataframes
-Baboon_vigilance_stats_both <- readRDS("data_derived/Baboon_vigilance_stats_both.rds")
-Baboon_frequency_stats_both <- readRDS("data_derived/Baboon_frequency_stats_both.rds")
+Baboon_vigilance_stats_both <- readRDS("data_derived/Baboon_vigilance_stats_both.rds") %>% 
+  dplyr::filter(predator_cue != "Control")
+Baboon_flight_binary_stats_both <- readRDS("data_derived/Baboon_flight_binary_stats_both.rds") %>% 
+  dplyr::filter(predator_cue != "Control")
+Flight_global_model_both <- readRDS("data_derived/Flight_global_model_both.rds")
+Vigilance_global_model_both <- readRDS("data_derived/Vigilance_global_model_both.rds")
+
+
+# Vigilance  ---------------------------------------------------------
+
 
 #PROPORTION VIGILANCE BY PREDATOR CUE
 # Create a new dataset with combinations of explanatory variables
@@ -59,7 +68,7 @@ predicted_vigilance_pred_plot <-
 #PROPORTION VIGILANCE BY YEAR
 # Create a new dataset with combinations of explanatory variables
 vigilance_year_only <- expand.grid(
-  predator_cue = factor("Control", levels = levels(Baboon_vigilance_stats_both$predator_cue)),
+  predator_cue = factor("Cheetah", levels = levels(Baboon_vigilance_stats_both$predator_cue)),
   Habitat = factor("Open", levels = levels(Baboon_vigilance_stats_both$Habitat)),  
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_vigilance_stats_both$age_sex_class)),  
   group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),
@@ -104,7 +113,7 @@ predicted_vigilance_year_plot <-
 #PROPORTION VIGILANCE BY HABITAT
 # Create a new dataset with combinations of explanatory variables
 vigilance_habitat_only <- expand.grid(
-  predator_cue = factor("Control", levels = levels(Baboon_vigilance_stats_both$predator_cue)),  
+  predator_cue = factor("Cheetah", levels = levels(Baboon_vigilance_stats_both$predator_cue)),  
   Habitat = unique(Baboon_vigilance_stats_both$Habitat),
   age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_vigilance_stats_both$age_sex_class)),
   group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),
@@ -117,7 +126,6 @@ vigilance_habitat_only$predicted <- predict(Vigilance_global_model_both,
                                             newdata = vigilance_habitat_only, 
                                             type = "response", 
                                             re.form = NA)  # Exclude random effects
-View(vigilance_habitat_only)
 # Get predictions with standard errors
 habitat_with_se <- predict(Vigilance_global_model_both, 
                            newdata = vigilance_habitat_only, 
@@ -150,7 +158,7 @@ predicted_vigilance_habitat_plot <-
 #PROPORTION VIGILANCE BY AGE AND SEX CLASS
 # Create a new dataset with combinations of explanatory variables
 vigilance_prey_only <- expand.grid(
-  predator_cue = factor("Control", levels = levels(Baboon_vigilance_stats_both$predator_cue)),  
+  predator_cue = factor("Cheetah", levels = levels(Baboon_vigilance_stats_both$predator_cue)),  
   Habitat = factor("Open", levels = levels(Baboon_vigilance_stats_both$Habitat)),
   age_sex_class = unique(Baboon_vigilance_stats_both$age_sex_class),
   group_number = mean(Baboon_vigilance_stats_both$group_number, na.rm = TRUE),
@@ -201,45 +209,48 @@ predicted_vigilance_prey_plot <-
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
+# Flight  ------------------------------------------------------------
+
+
 #FREQUENCY BY PREDATOR CUE
-frequency_pred_only <- expand.grid(
-  predator_cue = unique(Baboon_frequency_stats_both$predator_cue), # Vary predator cue
-  Habitat = factor("Open", levels = levels(Baboon_frequency_stats_both$Habitat)),  
-  age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_frequency_stats_both$age_sex_class)),  
-  group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),
-  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
+flight_pred_only <- expand.grid(
+  predator_cue = unique(Baboon_flight_binary_stats_both$predator_cue), # Vary predator cue
+  Habitat = factor("Open", levels = levels(Baboon_flight_binary_stats_both$Habitat)),  
+  age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_flight_binary_stats_both$age_sex_class)),  
+  group_number = mean(Baboon_flight_binary_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_flight_binary_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024"))
 )
 
 # Get predictions on the response scale
-frequency_pred_only$predicted <- predict(Frequency_global_model_both, 
-                                         newdata = frequency_pred_only, 
+flight_pred_only$predicted <- predict(Flight_global_model_both, 
+                                         newdata = flight_pred_only, 
                                          type = "response", 
                                          re.form = NA)  # Exclude random effects
 
 # Get predictions with standard errors
-frequency_with_se <- predict(Frequency_global_model_both, 
-                             newdata = frequency_pred_only, 
+flight_with_se <- predict(Flight_global_model_both, 
+                             newdata = flight_pred_only, 
                              type = "link",  # Get predictions on link scale for CIs
                              se.fit = TRUE,
                              re.form = NA)
 
 # Add confidence intervals on response scale
-frequency_pred_only$se <- frequency_with_se$se.fit
-frequency_pred_only$lower <- frequency_with_se$fit - 1.96 * frequency_with_se$se.fit
-frequency_pred_only$upper <- frequency_with_se$fit + 1.96 * frequency_with_se$se.fit
+flight_pred_only$se <- flight_with_se$se.fit
+flight_pred_only$lower <- flight_with_se$fit - 1.96 * flight_with_se$se.fit
+flight_pred_only$upper <- flight_with_se$fit + 1.96 * flight_with_se$se.fit
 
 #convert onto same scale
-frequency_pred_only$lower_resp <- plogis(frequency_pred_only$lower)
-frequency_pred_only$upper_resp <- plogis(frequency_pred_only$upper)
+flight_pred_only$lower_resp <- plogis(flight_pred_only$lower)
+flight_pred_only$upper_resp <- plogis(flight_pred_only$upper)
 
 #reorder predator cues for graphing
-frequency_pred_only <- frequency_pred_only%>%
-  mutate(predator_cue = factor(predator_cue, levels = c("Cheetah","Wild dog","Hyena", "Leopard", "Lion", "Control"))) 
+flight_pred_only <- flight_pred_only%>%
+  mutate(predator_cue = factor(predator_cue, levels = c("Cheetah","Wild dog","Hyena", "Leopard", "Lion"))) 
 
 #plot frequency of flight by predator cue
-predicted_frequency_pred_plot <-
-  ggplot(frequency_pred_only, aes(x = predator_cue, y = predicted)) +
+predicted_flight_pred_plot <-
+  ggplot(flight_pred_only, aes(x = predator_cue, y = predicted)) +
   geom_point(position = position_dodge(width = 0.5), size = 3) +
   geom_errorbar(aes(ymin = lower_resp, ymax = upper_resp), 
                 width = 0.2, 
@@ -249,41 +260,41 @@ predicted_frequency_pred_plot <-
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #FREQUENCY BY YEAR
-frequency_year_only <- expand.grid(
-  predator_cue = factor("Control", levels = levels(Baboon_frequency_stats_both$predator_cue)), 
-  Habitat = factor("Open", levels = levels(Baboon_frequency_stats_both$Habitat)),  
-  age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_frequency_stats_both$age_sex_class)),  
-  group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),
-  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
-  year = unique(Baboon_frequency_stats_both$year)
+flight_year_only <- expand.grid(
+  predator_cue = factor("Cheetah", levels = levels(Baboon_flight_binary_stats_both$predator_cue)), 
+  Habitat = factor("Open", levels = levels(Baboon_flight_binary_stats_both$Habitat)),  
+  age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_flight_binary_stats_both$age_sex_class)),  
+  group_number = mean(Baboon_flight_binary_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_flight_binary_stats_both$day_number, na.rm = TRUE),
+  year = unique(Baboon_flight_binary_stats_both$year)
 )
 
 # Get predictions on the response scale
-frequency_year_only$predicted <- predict(Frequency_global_model_both, 
-                                         newdata = frequency_year_only, 
+flight_year_only$predicted <- predict(Flight_global_model_both, 
+                                         newdata = flight_year_only, 
                                          type = "response", 
                                          re.form = NA)  # Exclude random effects
 
 # Get predictions with standard errors
-frequency_with_se <- predict(Frequency_global_model_both, 
-                             newdata = frequency_year_only, 
+flight_with_se <- predict(Flight_global_model_both, 
+                             newdata = flight_year_only, 
                              type = "link",  # Get predictions on link scale for CIs
                              se.fit = TRUE,
                              re.form = NA)
 
 # Add confidence intervals on response scale
-frequency_year_only$se <- frequency_with_se$se.fit
-frequency_year_only$lower <- frequency_with_se$fit - 1.96 * frequency_with_se$se.fit
-frequency_year_only$upper <- frequency_with_se$fit + 1.96 * frequency_with_se$se.fit
+flight_year_only$se <- flight_with_se$se.fit
+flight_year_only$lower <- flight_with_se$fit - 1.96 * flight_with_se$se.fit
+flight_year_only$upper <- flight_with_se$fit + 1.96 * flight_with_se$se.fit
 
 #convert onto same scale
-frequency_year_only$lower_resp <- plogis(frequency_year_only$lower)
-frequency_year_only$upper_resp <- plogis(frequency_year_only$upper)
+flight_year_only$lower_resp <- plogis(flight_year_only$lower)
+flight_year_only$upper_resp <- plogis(flight_year_only$upper)
 
 
 #plot frequency of flight by predator cue
-predicted_frequency_year_plot <-
-  ggplot(frequency_year_only, aes(x = year, y = predicted)) +
+predicted_flight_year_plot <-
+  ggplot(flight_year_only, aes(x = year, y = predicted)) +
   geom_point(position = position_dodge(width = 0.5), size = 3) +
   geom_errorbar(aes(ymin = lower_resp, ymax = upper_resp), 
                 width = 0.2, 
@@ -293,40 +304,40 @@ predicted_frequency_year_plot <-
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #FLIGHT FREQUENCY BY HABITAT
-frequency_habitat_only <- expand.grid(
-  predator_cue = factor("Control", levels = levels(Baboon_frequency_stats_both$predator_cue)),  
-  Habitat = unique(Baboon_frequency_stats_both$Habitat),
-  age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_frequency_stats_both$age_sex_class)),
-  group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),  
-  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
+flight_habitat_only <- expand.grid(
+  predator_cue = factor("Cheetah", levels = levels(Baboon_flight_binary_stats_both$predator_cue)),  
+  Habitat = unique(Baboon_flight_binary_stats_both$Habitat),
+  age_sex_class = factor("Female_Adult_no_offspring", levels = levels(Baboon_flight_binary_stats_both$age_sex_class)),
+  group_number = mean(Baboon_flight_binary_stats_both$group_number, na.rm = TRUE),  
+  day_number = mean(Baboon_flight_binary_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024")) 
 )
 
 # Get predictions on the response scale
-frequency_habitat_only$predicted <- predict(Frequency_global_model_both, 
-                                            newdata = frequency_habitat_only, 
+flight_habitat_only$predicted <- predict(Flight_global_model_both, 
+                                            newdata = flight_habitat_only, 
                                             type = "response", 
                                             re.form = NA)  # Exclude random effects
 # Get predictions with standard errors
-habitat_with_se <- predict(Frequency_global_model_both, 
-                           newdata = frequency_habitat_only, 
+habitat_with_se <- predict(Flight_global_model_both, 
+                           newdata = flight_habitat_only, 
                            type = "link",  # Get predictions on link scale for CIs
                            se.fit = TRUE,
                            re.form = NA)
 
 # Add confidence intervals on response scale
-frequency_habitat_only$se <- habitat_with_se$se.fit
-frequency_habitat_only$lower <- habitat_with_se$fit - 1.96 * habitat_with_se$se.fit 
-frequency_habitat_only$upper <- habitat_with_se$fit + 1.96 * habitat_with_se$se.fit
+flight_habitat_only$se <- habitat_with_se$se.fit
+flight_habitat_only$lower <- habitat_with_se$fit - 1.96 * habitat_with_se$se.fit 
+flight_habitat_only$upper <- habitat_with_se$fit + 1.96 * habitat_with_se$se.fit
 
 #convert onto same scale
-frequency_habitat_only$lower_resp <- plogis(frequency_habitat_only$lower)
-frequency_habitat_only$upper_resp <- plogis(frequency_habitat_only$upper)
+flight_habitat_only$lower_resp <- plogis(flight_habitat_only$lower)
+flight_habitat_only$upper_resp <- plogis(flight_habitat_only$upper)
 
 
 #plot for predicted frequency of flight by habitat type
-predicted_frequency_habitat_plot <-
-  ggplot(frequency_habitat_only, aes(x = Habitat, y = predicted)) +
+predicted_flight_habitat_plot <-
+  ggplot(flight_habitat_only, aes(x = Habitat, y = predicted)) +
   geom_point(color = "#023743FF", position = position_dodge(width = 0.5), size = 3) +  
   geom_errorbar(aes(ymin = lower_resp, ymax = upper_resp), 
                 color = "#023743FF",  # Set single color for error bars
@@ -341,40 +352,40 @@ predicted_frequency_habitat_plot <-
 
 
 #FREQUENCY OF FLIGHT BY AGE AND SEX CLASS
-frequency_prey_only <- expand.grid(
-  predator_cue = factor("Control", levels = levels(Baboon_frequency_stats_both$predator_cue)),  
-  Habitat = factor("Open", levels = levels(Baboon_frequency_stats_both$Habitat)),
-  age_sex_class = unique(Baboon_frequency_stats_both$age_sex_class),
-  group_number = mean(Baboon_frequency_stats_both$group_number, na.rm = TRUE),
-  day_number = mean(Baboon_vigilance_stats_both$day_number, na.rm = TRUE),
+flight_prey_only <- expand.grid(
+  predator_cue = factor("Cheetah", levels = levels(Baboon_flight_binary_stats_both$predator_cue)),  
+  Habitat = factor("Open", levels = levels(Baboon_flight_binary_stats_both$Habitat)),
+  age_sex_class = unique(Baboon_flight_binary_stats_both$age_sex_class),
+  group_number = mean(Baboon_flight_binary_stats_both$group_number, na.rm = TRUE),
+  day_number = mean(Baboon_flight_binary_stats_both$day_number, na.rm = TRUE),
   year = factor("2021", levels = c("2021", "2024"))
 )
 
 # Get predictions on the response scale
-frequency_prey_only$predicted <- predict(Frequency_global_model_both, 
-                                         newdata = frequency_prey_only, 
+flight_prey_only$predicted <- predict(Flight_global_model_both, 
+                                         newdata = flight_prey_only, 
                                          type = "response", 
                                          re.form = NA)  # Exclude random effects
 
 # Get predictions with standard errors
-prey_with_se <- predict(Frequency_global_model_both, 
-                        newdata = frequency_prey_only, 
+prey_with_se <- predict(Flight_global_model_both, 
+                        newdata = flight_prey_only, 
                         type = "link",  # Get predictions on link scale for CIs
                         se.fit = TRUE,
                         re.form = NA)
 
 # Add confidence intervals on response scale
-frequency_prey_only$se <- prey_with_se$se.fit
-frequency_prey_only$lower <- prey_with_se$fit - 1.96 * prey_with_se$se.fit
-frequency_prey_only$upper <- prey_with_se$fit + 1.96 * prey_with_se$se.fit
+flight_prey_only$se <- prey_with_se$se.fit
+flight_prey_only$lower <- prey_with_se$fit - 1.96 * prey_with_se$se.fit
+flight_prey_only$upper <- prey_with_se$fit + 1.96 * prey_with_se$se.fit
 
 #convert onto same scale
-frequency_prey_only$lower_resp <- plogis(frequency_prey_only$lower)
-frequency_prey_only$upper_resp <- plogis(frequency_prey_only$upper)
+flight_prey_only$lower_resp <- plogis(flight_prey_only$lower)
+flight_prey_only$upper_resp <- plogis(flight_prey_only$upper)
 
 
 #change age sex class names for graphing
-frequency_prey_only <- frequency_prey_only %>%
+flight_prey_only <- flight_prey_only %>%
   mutate(age_sex_class = case_when(
     age_sex_class %in% c("Female_Adult_no_offspring") ~ "Female no offspring",
     age_sex_class %in% c("Female_Adult_with_offspring") ~ "Female with offspring",
@@ -383,8 +394,8 @@ frequency_prey_only <- frequency_prey_only %>%
   ))
 
 #plot for flight freqeuncy by age and sex class
-predicted_frequency_prey_plot <- 
-  ggplot(frequency_prey_only, aes(x = age_sex_class, y = predicted)) +
+predicted_flight_prey_plot <- 
+  ggplot(flight_prey_only, aes(x = age_sex_class, y = predicted)) +
   geom_point(position = position_dodge(width = 0.5), size = 3, color = "#023743FF") +  
   geom_errorbar(aes(ymin = lower_resp, ymax = upper_resp), 
                 width = 0.2, 
@@ -395,3 +406,4 @@ predicted_frequency_prey_plot <-
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+

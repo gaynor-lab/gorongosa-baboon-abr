@@ -1,0 +1,43 @@
+#Script for creating panel plots of raw data and model predictions for each behavioural response variable
+
+#load packages
+library(cowplot)
+
+source("scripts/6. Combined_fixed_plots.R")
+
+#PROPORTION VIGILANCE - combined plots 
+plot_grid(
+  combined_vigilance_year_plot,
+  combined_vigilance_predator_plot,
+  combined_vigilance_habitat_plot,
+  combined_vigilance_prey_plot,
+  labels = c("A", "B", "C", "D"), 
+  label_size = 14,  
+  ncol = 2,
+  nrow = 2
+)
+
+#LATENCY TO FLEE - Kaplan-mier curves 
+plot_grid(
+  year_plot$plot,
+  predator_plot$plot,
+  habitat_plot$plot,
+  sex_plot$plot,
+  labels = c("A", "B", "C", "D"),  
+  label_size = 14,
+  ncol = 2,
+  nrow = 2
+)
+
+#FREQUENCY OF FLIGHT - combined plots
+plot_grid(
+  combined_flight_year_plot,
+  combined_flight_pred_plot,
+  combined_flight_habitat_plot,
+  combined_flight_prey_plot,
+  labels = c("A", "B", "C", "D"), 
+  label_size = 14,  
+  ncol = 2,
+  nrow = 2
+)
+
