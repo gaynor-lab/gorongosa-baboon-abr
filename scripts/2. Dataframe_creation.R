@@ -1,4 +1,4 @@
-#Creation of dataframes for each response variable (proportion vigilance, latency to flee, flight frequency)
+#Creation of dataframes for each response variable (proportion vigilance, latency to flee, flight)
 
 #load packages
 library(dplyr)
@@ -149,36 +149,42 @@ Baboon_flight_stats_24 <- Baboon_flight_data_24 %>%
   drop_na(latency_to_flee, predator_cue, Habitat, age_sex_class, group_number, offspring)%>% #need to drop one video where age_sex_class is NA for analysis
   mutate(log_latency_to_flee = log(latency_to_flee + 1)) 
 
+# calculate mean latency to flee for predator-only cues
+Baboon_flight_stats_24_predator <- Baboon_flight_stats_24 %>%
+  filter(predator_cue != "Control") 
+mean(Baboon_flight_stats_24_predator$latency_to_flee, na.rm = TRUE)
+sd(Baboon_flight_stats_24_predator$latency_to_flee, na.rm = TRUE)
+
 #export dataframe
 saveRDS(Baboon_flight_stats_24, "data_derived/Baboon_flight_stats_24.rds")
 
-#DATAFRAME FOR FLIGHT FREQUENCY
+#DATAFRAME FOR FLIGHT
 
 #filter videos that have No_sound or sound.quality = poor 
-Baboon_frequency_data_24 <- Final_2024 %>%
+Baboon_flight_binary_data_24 <- Final_2024 %>%
   filter(
     !(sound_quality %in% c("Poor", "None")))  # Exclude Poor and None Sound_quality
 
 #order frames in chronological order
-Baboon_frequency_data_24 <- Baboon_frequency_data_24 %>%
+Baboon_flight_binary_data_24 <- Baboon_flight_binary_data_24 %>%
   group_by(file_name) %>%
   arrange(frame, .by_group = TRUE) %>%
   ungroup()
 
 #remove the number of frames before the audio cue is played
-Baboon_frequency_data_24 <- Baboon_frequency_data_24 %>%
+Baboon_flight_binary_data_24 <- Baboon_flight_binary_data_24 %>%
   group_by(file_name) %>%
   slice((sound_delay_s[1] * 30 + 1):n()) %>%
   ungroup()
 
 #create column by grouping videos by file_name and then labeling them with 0 if no flight present and 1 if flight present
-Baboon_frequency_data_24 <- Baboon_frequency_data_24 %>%
+Baboon_flight_binary_data_24 <- Baboon_flight_binary_data_24 %>%
   group_by(file_name) %>% 
   mutate(flight_present = if_else(any(str_detect(Behaviour, "Flight")), 1, 0)) %>%
   ungroup()
 
-#Dataframe for flight frequency model
-Baboon_frequency_stats_24 <- Baboon_frequency_data_24 %>%
+#Dataframe for flight model
+Baboon_flight_binary_stats_24 <- Baboon_flight_binary_data_24 %>%
   mutate(Habitat = case_when(
     site %in% c("E02", "F01", "F03", "F07", "I04", "J03", "J13", "N03", "N10", "N11") ~ "Open",
     site %in% c("D05", "D09", "E08", "G06", "G08", "I06", "I08", "I10", "L11") ~ "Closed",
@@ -199,7 +205,7 @@ Baboon_frequency_stats_24 <- Baboon_frequency_data_24 %>%
   drop_na(predator_cue, Habitat, age_sex_class, group_number, offspring) #need to drop NAs from proportion vigilant where total_frames = occluded_frames
 
 #exportdatrat
-saveRDS(Baboon_frequency_stats_24, "data_derived/Baboon_frequency_stats_24.rds")
+saveRDS(Baboon_flight_binary_stats_24, "data_derived/Baboon_flight_binary_stats_24.rds")
 
 #2021 data
 
@@ -360,23 +366,23 @@ Baboon_flight_stats <- Baboon_flight_data %>%
 #export dataframe
 saveRDS(Baboon_flight_stats, "data_derived/Baboon_flight_stats.rds")
 
-#DATAFRAME FOR FLIGHT FREQUENCY
+#DATAFRAME FOR FLIGHT
 
 #filter videos that have No_sound or sound.quality = poor or a sound delay as they will not be included in analysis
-Baboon_frequency_data <- Final_2021 %>%
+Baboon_flight_binary_data <- Final_2021 %>%
   filter(
     !(Sound_quality %in% c("Poor", "None")),  # Exclude Poor and None Sound_quality
     Sound_delay_s == "None"  # Keep only rows where Sound_delay_s is "None"
   )
 
 #create column by grouping videos by file_name and then labeling them with 0 if no flight present and 1 if flight present
-Baboon_frequency_data <- Baboon_frequency_data %>%
+Baboon_flight_binary_data <- Baboon_flight_binary_data %>%
   group_by(file_name) %>% 
   mutate(flight_present = if_else(any(str_detect(Behaviour, "Flight")), 1, 0)) %>%
   ungroup()
 
-#Dataframe for flight frequency model
-Baboon_frequency_stats <- Baboon_frequency_data %>%
+#Dataframe for flight model
+Baboon_flight_binary_stats <- Baboon_flight_binary_data %>%
   mutate(Habitat = case_when(
     Camera.trap.site %in% c("E02", "F01", "F03", "F07", "I04", "J03", "J13", "N03", "N10", "N11") ~ "Open",
     Camera.trap.site %in% c("D05", "D09", "E08", "G06", "G08", "I06", "I08", "I10", "L11") ~ "Closed",
@@ -411,5 +417,5 @@ Baboon_frequency_stats <- Baboon_frequency_data %>%
 #save dataframes
 saveRDS(Baboon_vigilance_data_24, "data_derived/Baboon_vigilance_data_24.rds")
 saveRDS(Baboon_flight_data_24, "data_derived/Baboon_flight_data_24.rds")
-saveRDS(Baboon_frequency_data_24, "data_derived/Baboon_frequency_data_24.rds")
+saveRDS(Baboon_flight_binary_data_24, "data_derived/Baboon_flight_binary_data_24.rds")
 
