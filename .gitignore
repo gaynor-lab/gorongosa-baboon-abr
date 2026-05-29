@@ -5,8 +5,10 @@
 .RDataTmp
 
 # Ignore all data files
-# Ignore all data files
 data_raw/
 data/
+data_derived
+figures/
 
 *.DS_Store
+*.Rproj
