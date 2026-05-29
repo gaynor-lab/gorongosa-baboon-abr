@@ -57,10 +57,20 @@ frame_df <- map_df(tracks, ~{
   map_df(boxes, ~tibble(
     task_id = as.integer(task_id),
     label = label,
-    frame = as.integer(xml_attr(.x, "frame"))
+    frame = as.integer(xml_attr(.x, "frame")),
+    xtl = xml_attr(.x, "xtl"), # x left
+    ytl = xml_attr(.x, "ytl"), # y top left
+    xbr = xml_attr(.x, "xbr"), # x bottom right
+    ybr = xml_attr(.x, "ybr") # y bottom right
   ))
 })
 
+# Calculate width and height of bounding boxes
+frame_df <- frame_df %>%
+  mutate(
+    width = as.numeric(xbr) - as.numeric(xtl),
+    height = as.numeric(ybr) - as.numeric(ytl)
+  )
 
 # Join with file name
 frame_df2 <- left_join(frame_df, task_df)
@@ -139,7 +149,11 @@ frame_df <- map_df(tracks, ~{
   map_df(boxes, ~tibble(
     task_id = as.integer(task_id),
     label = label,
-    frame = as.integer(xml_attr(.x, "frame"))
+    frame = as.integer(xml_attr(.x, "frame")),
+    xtl = xml_attr(.x, "xtl"), # x left
+    ytl = xml_attr(.x, "ytl"), # y top left
+    xbr = xml_attr(.x, "xbr"), # x bottom right
+    ybr = xml_attr(.x, "ybr") # y bottom right
   ))
 })
 
