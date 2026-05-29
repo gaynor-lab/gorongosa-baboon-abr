@@ -178,10 +178,14 @@ Baboon_flight_KM_all <- Baboon_flight_KM_all %>%
     )
   )
 
-View(Baboon_flight_KM_all)
+# Remove control cues
+Baboon_flight_KM_all_nocontrol <- Baboon_flight_KM_all %>% 
+  filter(predator_cue != "Control")
+
+#View(Baboon_flight_KM_all)
 # Create the survival object
-surv_obj <- Surv(time = Baboon_flight_KM_all$latency_to_flee_s, 
-                 event = Baboon_flight_KM_all$flight_present)
+surv_obj <- Surv(time = Baboon_flight_KM_all_nocontrol$latency_to_flee_s, 
+                 event = Baboon_flight_KM_all_nocontrol$flight_present)
 
 # Fit the Kaplan-Meier survival curve for all data combined
 fit <- survfit(surv_obj ~ 1)
@@ -189,44 +193,52 @@ fit <- survfit(surv_obj ~ 1)
 #Create the overall survival curve plot
 km_plot <- ggsurvplot(
   fit, 
-  data = Baboon_flight_KM_all,
+  data = Baboon_flight_KM_all_nocontrol,
+  fun = "event",
   risk.table = FALSE,      
   conf.int = TRUE,
-  xlab = "Latency to flee (seconds)",
-  ylab = "Probability of not fleeing",
-  censor.shape = "|",
+  xlab = "Time Since Predator Cue (seconds)",
+  ylab = "Probability of Flight",
+  censor = FALSE,
   ggtheme = theme_minimal()
 )
 
 # Modify plot
-km_plot$plot <- km_plot$plot +
+((km_plot$plot <- km_plot$plot +
   scale_color_manual(values = "black") +
   theme(
     panel.grid.minor = element_blank(),    
     panel.grid.major = element_line(color = "grey80"),  
-    axis.text = element_text(size = 15),   
-    axis.title = element_text(size = 20),
+    axis.text = element_text(size = 10),   
+    axis.title = element_text(size = 12),
     legend.position = "none"
   ) +
-  coord_cartesian(ylim = c(0.75, 1))
+  coord_cartesian(ylim = c(0, 0.25))))
+
+ggsave("figures/KM_plot_all.png", km_plot$plot, width = 5, height = 4)
 
 #KM plot for predator cue
 
 #Set 'predator_cue' as factor
 Baboon_flight_KM_all$predator_cue <- as.factor(Baboon_flight_KM_all$predator_cue)
 
+# Create the survival object WITH control
+surv_obj_all <- Surv(time = Baboon_flight_KM_all$latency_to_flee_s, 
+                 event = Baboon_flight_KM_all$flight_present)
+
 # Fit survival model
-fit_predator <- survfit(surv_obj ~ predator_cue, data = Baboon_flight_KM_all)
+fit_predator <- survfit(surv_obj_all ~ predator_cue, data = Baboon_flight_KM_all)
 
 #Create survival curve plot
 predator_plot <- ggsurvplot(
   fit_predator,
   data = Baboon_flight_KM_all,
+  fun = "event",
   conf.int = TRUE,
   conf.int.alpha = 0.10,
   risk.table = FALSE,
   xlab = "Latency to flee (seconds)",
-  ylab = "Probability of not fleeing",
+  ylab = "Probability of flight",
   censor.shape = "|",
   ggtheme = theme_minimal(),
   legend.title = "Predator cue",    
@@ -241,7 +253,7 @@ predator_plot$plot <- predator_plot$plot +
     axis.text = element_text(size = 10),
     axis.title = element_text(size = 12)
   ) +
-  coord_cartesian(ylim = c(0.60, 1))
+  coord_cartesian(ylim = c(0, 0.40))
 
 #pairwise analysis
 pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ predator_cue,
@@ -252,17 +264,18 @@ pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ predator_cue,
 #KM Plot for year
 
 # Fit survival model
-fit_year <- survfit(surv_obj ~ year, data = Baboon_flight_KM_all)
+fit_year <- survfit(surv_obj ~ year, data = Baboon_flight_KM_all_nocontrol)
 
 #Create survival curve plot
 year_plot <- ggsurvplot(
   fit_year,
-  data = Baboon_flight_KM_all,
+  data = Baboon_flight_KM_all_nocontrol,
+  fun = "event",
   conf.int = TRUE,
   conf.int.alpha = 0.10,
   risk.table = FALSE,
   xlab = "Latency to flee (seconds)",
-  ylab = "Probability of not fleeing",
+  ylab = "Probability of flight",
   censor.shape = "|",
   ggtheme = theme_minimal(),
   legend.title = "Year",    
@@ -276,17 +289,17 @@ year_plot$plot <- year_plot$plot +
     axis.text = element_text(size = 10),
     axis.title = element_text(size = 12)
   ) +
-  coord_cartesian(ylim = c(0.70, 1))
+  coord_cartesian(ylim = c(0, 0.3))
 
 #pairwise analysis
 pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ year,
-                  data = Baboon_flight_KM_all,
+                  data = Baboon_flight_KM_all_nocontrol,
                   p.adjust.method = "holm")
 
 #KM plot for age_sex class
 
 #filter out NAs for age_sex class
-Baboon_flight_age_sex <- Baboon_flight_KM_all %>%
+Baboon_flight_age_sex <- Baboon_flight_KM_all_nocontrol %>%
   filter(!is.na(age_sex_class))
 
 #create survival object
@@ -304,9 +317,10 @@ sex_plot <- ggsurvplot(
   data = Baboon_flight_age_sex,
   conf.int = TRUE,
   conf.int.alpha = 0.10,
+  fun = "event",
   risk.table = FALSE,
   xlab = "Latency to flee (seconds)",
-  ylab = "Probability of not fleeing",
+  ylab = "Probability of flight",
   censor.shape = "|",
   ggtheme = theme_minimal(),
   legend.title = "Age sex class",    
@@ -320,27 +334,28 @@ sex_plot$plot <- sex_plot$plot +
     axis.text = element_text(size = 10),
     axis.title = element_text(size = 12)
   ) +
-  coord_cartesian(ylim = c(0.60, 1))
+  coord_cartesian(ylim = c(0, 0.4))
 
 #pairwise analysis
 pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ age_sex_class,
-                  data = Baboon_flight_KM_all,
+                  data = Baboon_flight_KM_all_nocontrol,
                   p.adjust.method = "holm")
 
 #KM plot for habitat
 
 # Fit survival model
-fit_habitat <- survfit(surv_obj ~ Habitat, data = Baboon_flight_KM_all)
+fit_habitat <- survfit(surv_obj ~ Habitat, data = Baboon_flight_KM_all_nocontrol)
 
 #plot
 habitat_plot <- ggsurvplot(
   fit_habitat,
-  data = Baboon_flight_KM_all,
+  data = Baboon_flight_KM_all_nocontrol,
+  fun = "event",
   conf.int = TRUE,
   conf.int.alpha = 0.10,
   risk.table = FALSE,
   xlab = "Latency to flee (seconds)",
-  ylab = "Probability of not fleeing",
+  ylab = "Probability of flight",
   censor.shape = "|",
   ggtheme = theme_minimal(),
   legend.title = "Habitat",    
@@ -353,11 +368,22 @@ habitat_plot$plot <- habitat_plot$plot +
     axis.text = element_text(size = 10),
     axis.title = element_text(size = 12)
   ) +
-  coord_cartesian(ylim = c(0.70, 1))
+  coord_cartesian(ylim = c(0, 0.3))
 
 #pairwise analysis
 pairwise_survdiff(Surv(latency_to_flee_s, flight_present) ~ Habitat,
-                  data = Baboon_flight_KM_all,
+                  data = Baboon_flight_KM_all_nocontrol,
                   p.adjust.method = "holm")
     
 
+# Save all plots
+
+ggsave("figures/KM_predator.png", predator_plot$plot, width = 6, height = 4, dpi = 300)
+ggsave("figures/KM_year.png", year_plot$plot, width = 6, height = 4, dpi = 300)
+ggsave("figures/KM_age_sex.png", sex_plot$plot, width = 6, height = 4, dpi = 300)
+ggsave("figures/KM_habitat.png", habitat_plot$plot, width = 6, height = 4, dpi = 300)
+
+library(cowplot)
+multipanel <- plot_grid(year_plot$plot, predator_plot$plot, habitat_plot$plot, sex_plot$plot,
+          labels = c('A', 'B', 'C', 'D'), ncol = 2)
+ggsave("figures/KM_supplement_multipanel.png", multipanel, width = 12, height = 10, dpi = 300)
