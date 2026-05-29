@@ -14,10 +14,10 @@ B_24_second <- read.csv("data/2024_baboon_second.csv")
 
 #make file name column in second watch data to join with file_name from CVAT annotations
 B_21_second<- B_21_second %>%
-  mutate(file_name = paste(Year, Camera.trap.site,video_name, sep = "_"))
+  mutate(file_name = paste(year, site, video_name, sep = "_"))
 
 B_24_second<- B_24_second %>%
-  mutate(file_name = paste(year, site,video_name, sep = "_"))
+  mutate(file_name = paste(year, site, video_name, sep = "_"))
 
 #Dataframe join for 2024 data
 
@@ -157,6 +157,12 @@ frame_df <- map_df(tracks, ~{
   ))
 })
 
+# Calculate width and height of bounding boxes
+frame_df <- frame_df %>%
+  mutate(
+    width = as.numeric(xbr) - as.numeric(xtl),
+    height = as.numeric(ybr) - as.numeric(ytl)
+  )
 
 # Join with file name
 frame_df2 <- left_join(frame_df, task_df)
@@ -195,23 +201,23 @@ Final_2021 <- merged_clean_2021 %>%
 
 #Fix leopard typo
 Final_2021 <- Final_2021 %>%
-  mutate(Predator.cue = str_replace(Predator.cue, "Leo\\[ard", "Leopard"))
+  mutate(predator_cue = str_replace(predator_cue, "Leo\\[ard", "Leopard"))
 
 #Fix cheetah typo
 Final_2021 <- Final_2021 %>%
-  mutate(Predator.cue = str_replace(Predator.cue, "Cheeetah", "Cheetah"))
+  mutate(predator_cue = str_replace(predator_cue, "Cheeetah", "Cheetah"))
 
 #Fix control typo
 Final_2021 <- Final_2021 %>%
-  mutate(Predator.cue = str_replace(Predator.cue, "Control ", "Control"))
+  mutate(predator_cue = str_replace(predator_cue, "Control ", "Control"))
 
 #Rename WD to Wild_dog
 Final_2021 <- Final_2021 %>%
-  mutate(Predator.cue = str_replace(Predator.cue, "WD", "Wild dog"))
+  mutate(predator_cue = str_replace(predator_cue, "WD", "Wild dog"))
 
 #Rename NA predator cues to No_sound
 Final_2021 <- Final_2021 %>%
-  mutate(Predator.cue = if_else(is.na(Predator.cue), "No_sound", Predator.cue))
+  mutate(predator_cue = if_else(is.na(predator_cue), "No_sound", predator_cue))
 
 #Save dataframes 
 saveRDS(Final_2021, "data_derived/Final_2021.rds")
