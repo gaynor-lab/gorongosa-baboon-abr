@@ -45,6 +45,8 @@ Final_2021_2024 <- Final_2021_2024 %>%
     sex == "F" & age == "A" & offspring == 1 ~ "Female_Adult_with_offspring",
     sex == "F" & age == "A" & offspring == 0 ~ "Female_Adult_no_offspring",
     sex == "M" & age == "A" ~ "Male_Adult",
+    sex == "Unknown" ~ "Unknown",
+    age == "Unknown" ~ "Unknown",
     TRUE ~ NA_character_  # Default if nothing matches
   )) %>% 
   mutate(neighbours = group_number - 1)
@@ -73,26 +75,40 @@ Baboon_vigilance <- Baboon_vigilance %>%
   mutate(
     total_frames = n(),  # Count total frames per file_name
     vigilant_frames = sum(behaviour_class == "Vigilant", na.rm = TRUE),  # Count Vigilant frames
+    look_at_abr_frames = sum(Behaviour == "Staring", # Count frames looking at ABR
+                             Behaviour == "Walking_V",
+                             Behaviour == "Startling",
+                             Behaviour == "Stand_stare",
+                             na.rm = TRUE),
+    scanning_frames = sum(Behaviour == "Scanning", na.rm = TRUE),  # Count Scanning frames
+    look_not_abr_frames = sum(Behaviour == "Scanning", 
+                              Behaviour == "Walking_NV",
+                              na.rm = TRUE),
     occluded_frames = sum(behaviour_class == "Occluded", na.rm = TRUE),  # Count Occluded frames
-    proportion_vigilant = if_else(total_frames == occluded_frames, NA, vigilant_frames / (total_frames - occluded_frames))  # Compute proportion or set NA if occluded frames = total frames
+    nonoccluded_frames = total_frames - occluded_frames,
+    
+    # Calculate vigilance proportions
+    proportion_vigilant = if_else(total_frames == occluded_frames, NA, vigilant_frames / nonoccluded_frames),  # Compute proportion or set NA if occluded frames = total frames
+    proportion_look_at_abr = if_else(total_frames == occluded_frames, NA, look_at_abr_frames / nonoccluded_frames),
+    proportion_scanning = if_else(total_frames == occluded_frames, NA, scanning_frames / nonoccluded_frames),
+    proportion_look_not_abr = if_else(total_frames == occluded_frames, NA, look_not_abr_frames / nonoccluded_frames)
   ) %>%
   ungroup()
 
 #Dataframe for proportion vigilance model
-Baboon_vigilance <- Baboon_vigilance %>%
-  group_by(file_name, Habitat, age_sex_class, site, predator_cue, group_number, offspring, year) %>%
-  summarise(
-    proportion_vigilant = first(na.omit(proportion_vigilant)),  # Get first non-NA value
-    .groups = "drop"
-  ) %>%
-  drop_na(proportion_vigilant, predator_cue, Habitat, age_sex_class, group_number, offspring) #need to drop NAs from proportion vigilant where total_frames = occluded_frames
+Baboon_vigilance_by_video <- Baboon_vigilance %>%
+  select(file_name, Habitat, age_sex_class, site, predator_cue, group_number, offspring, year,
+         total_frames, nonoccluded_frames, occluded_frames,
+         proportion_vigilant, proportion_look_at_abr, proportion_scanning, proportion_look_not_abr) %>%
+  unique() %>% 
+  drop_na(proportion_vigilant) #need to drop NAs from proportion vigilant where total_frames = occluded_frames
 
 # Join bounding boxes
-Baboon_vigilance <- Baboon_vigilance %>%
+Baboon_vigilance_by_video <- Baboon_vigilance_by_video %>%
   left_join(bbox, by = "file_name")
 
 #export dataframe 
-saveRDS(Baboon_vigilance, "data_derived/Baboon_vigilance_df.rds")
+saveRDS(Baboon_vigilance_by_video, "data_derived/Baboon_vigilance_df.rds")
 
 
 # DATAFRAME FOR FLIGHT ANALYSIS ----------------------------------------
