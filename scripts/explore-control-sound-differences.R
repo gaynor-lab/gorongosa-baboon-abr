@@ -14,6 +14,12 @@ Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") %>%
   filter(predator_cue == "Control", year == "2024") %>% 
   left_join(metadata_2024)
 
+Baboon_vigilance_df %>% 
+  ggplot(aes(x = factor(predator_file),
+             y = proportion_vigilant)) +
+  geom_boxplot() +
+  theme_bw()
+
 # Flight
 
 Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds") %>% 
