@@ -164,6 +164,14 @@ frame_df <- frame_df %>%
     height = as.numeric(ybr) - as.numeric(ytl)
   )
 
+# Fix typo in 2021_D05_08120024_Baboon_AVI file name
+frame_df2 <- frame_df2 %>%
+  mutate(file_name = recode(
+    file_name,
+    "2021_D05_08120024_Baboon_AVI" = "2021_D05_08120024_Baboon_.AVI"
+  ))
+
+
 # Join with file name
 frame_df2 <- left_join(frame_df, task_df)
 colnames(frame_df2)[colnames(frame_df2) == "task_name"] <- "file_name"
