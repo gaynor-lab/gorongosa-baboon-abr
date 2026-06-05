@@ -8,9 +8,9 @@ library(stringr)
 library(tidyverse)
 
 #Import second watch metadata in CSV format 
-B_21_second <- read.csv("data/2021_baboon_second.csv")
+B_21_second <- read.csv("data/second watch 2026 correction/2021_baboon_second.csv")
 
-B_24_second <- read.csv("data/2024_baboon_second.csv")
+B_24_second <- read.csv("data/second watch 2026 correction/2024_baboon_second.csv")
 
 #make file name column in second watch data to join with file_name from CVAT annotations
 B_21_second<- B_21_second %>%
