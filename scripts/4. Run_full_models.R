@@ -78,6 +78,11 @@ Baboon_vigilance_df$Habitat <- relevel(Baboon_vigilance_df$Habitat, ref = "Open"
 Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df %>% 
   dplyr::filter(predator_cue != "Control")
 
+# Scale numerical variables
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>%
+  mutate(group_number = scale(group_number),
+         day_number = scale(day_number))
+
 #Global GLMM using beta distribution
 Vigilance_global_model <- glmmTMB(proportion_vigilant_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
                                        data = Baboon_vigilance_df_nocontrol,
@@ -221,6 +226,11 @@ Baboon_flight_df_nocontrol <- Baboon_flight_df %>%
 # Drop NA
 Baboon_flight_df_nocontrol <- Baboon_flight_df_nocontrol %>% 
   tidyr::drop_na()
+
+# Scale numerical variables
+Baboon_flight_df_nocontrol <- Baboon_flight_df_nocontrol %>%
+  mutate(group_number = scale(group_number),
+         day_number = scale(day_number))
 
 #Global GLMM with binomial distribution
 Flight_global_model <- glmmTMB(flight_present ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
