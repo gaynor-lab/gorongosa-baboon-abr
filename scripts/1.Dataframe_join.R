@@ -109,7 +109,6 @@ Final_2024 <- Final_2024 %>%
 #fix typo in Walking_V
 Final_2024 <- Final_2024 %>%
   mutate(Behaviour = ifelse(Behaviour == "Waking_V", "Walking_V", Behaviour))
-View(Final_2024)
 
 #Dataframe join for 2021
 
@@ -175,15 +174,10 @@ frame_df2 <- frame_df2 %>%
 # Join with file name
 frame_df2 <- left_join(frame_df, task_df)
 colnames(frame_df2)[colnames(frame_df2) == "task_name"] <- "file_name"
-View(frame_df2)
 
 # Join datasets based on filename
-merged_df <- frame_df2 %>%
+merged_clean_2021 <- frame_df2 %>%
   left_join(B_21_second, by = "file_name")
-
-#remove unncessary columns
-merged_clean_2021_1 <- merged_df %>% select(-X)
-merged_clean_2021 <- merged_clean_2021_1 %>% select(- Notes..here.could.record.anything.unusual.and.also.notes.about.interspecies.interactions..)
 
 #rename columns
 colnames(merged_clean_2021)[colnames(merged_clean_2021) == "task_id"] <- "Task_ID"
