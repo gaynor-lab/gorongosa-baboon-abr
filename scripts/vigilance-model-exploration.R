@@ -1,4 +1,4 @@
-#Script for model averaging for proportion vigilance and flight frequency
+# Explore different vigilance response variables
 
 #load packages
 library(glmmTMB)
@@ -6,9 +6,9 @@ library(dplyr)
 library(MuMIn)
 library(performance)
 library(stringr)
+library(tidyr)
 
-
-# Vigilance models --------------------------------------------------------
+# Vigilance data --------------------------------------------------------
 
 # Import data
 Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") %>% 
@@ -79,16 +79,71 @@ Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df %>%
 
 
 
+# Prevalence of types of vigilance ----------------------------------------
+
+# Remove any videos where the baboon was present for <2 seconds
+Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
+  filter(nonoccluded_frames > 60) %>% 
+  mutate(proportion_walking_nv = proportion_look_not_abr - proportion_scanning)
+
+hist(Baboon_vigilance_df_nocontrol_2sec$proportion_vigilant)
+hist(Baboon_vigilance_df_nocontrol_2sec$proportion_look_at_abr)
+hist(Baboon_vigilance_df_nocontrol_2sec$proportion_scanning)
+hist(Baboon_vigilance_df_nocontrol_2sec$proportion_look_not_abr)
+
+mean(Baboon_vigilance_df_nocontrol_2sec$proportion_vigilant)
+mean(Baboon_vigilance_df_nocontrol_2sec$proportion_look_at_abr)
+mean(Baboon_vigilance_df_nocontrol_2sec$proportion_scanning)
+mean(Baboon_vigilance_df_nocontrol_2sec$proportion_look_not_abr)
+
+# Calculate some totals
+Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+  mutate(total_vigilant_frames = proportion_vigilant * nonoccluded_frames,
+         total_look_at_abr_frames = proportion_look_at_abr * nonoccluded_frames,
+         total_scanning_frames = proportion_scanning * nonoccluded_frames,
+         total_look_not_abr_frames = proportion_look_not_abr * nonoccluded_frames)
+
+Baboon_vigilance_df_nocontrol_2sec %>% 
+  summarise(total_vigilant_frames = sum(total_vigilant_frames),
+            total_look_at_abr_frames = sum(total_look_at_abr_frames),
+            total_scanning_frames = sum(total_scanning_frames),
+            total_look_not_abr_frames = sum(total_look_not_abr_frames)) %>% 
+  pivot_longer(cols = everything(), names_to = "vigilance_type", values_to = "total_frames") %>% 
+  mutate(proportion = total_frames / total_frames[vigilance_type == "total_vigilant_frames"])
+
+# Correlations
+
+library(ggcorrplot)
+
+df_corr <- Baboon_vigilance_df_nocontrol_2sec %>%
+  select(
+    proportion_vigilant,
+    proportion_look_at_abr,
+    proportion_scanning,
+    proportion_look_not_abr,
+    proportion_walking_nv
+  ) %>%
+  na.omit()
+
+cor_mat <- cor(df_corr)
+
+ggcorrplot(
+  cor_mat,
+  lab = TRUE,                # show values
+  type = "lower",
+  colors = c("#B2182B", "white", "#2166AC"),
+  lab_size = 4
+) 
 
 
-# All vigilance, 1 second -------------------------------------------------
+  # All vigilance, 1 second -------------------------------------------------
 
 # Remove any videos where the baboon was present for <1 second
 Baboon_vigilance_df_nocontrol_1sec <- Baboon_vigilance_df_nocontrol %>% 
   filter(nonoccluded_frames > 30) 
 
 # Scale covariates
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol_1sec <- Baboon_vigilance_df_nocontrol_1sec %>% 
   mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
                group_number = scale(group_number, center = TRUE, scale = TRUE))
 
@@ -132,14 +187,14 @@ results_Vigilance_1s_all <- coefs_vigilance %>%
       grepl("^day_number", term) ~ "Day of study",
       grepl("^year", term) ~ "Year",
       grepl("^Habitat", term) ~ "Habitat",
-      grepl("^group_number", term) ~ "Group size",
+      grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
       grepl("^predator_cue", term) ~ "Cue"
     ),
     
     Level = case_when(
       term == "day_number" ~ "Day of study",
-      term == "group_number" ~ "Group size",
+      term == "group_number" ~ "Number of neighbors",
       term == "year2024" ~ "Year = 2024",
       term == "HabitatClosed" ~ "Habitat = Closed",
       term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
@@ -208,14 +263,14 @@ results_Vigilance_2s_all <- coefs_vigilance %>%
       grepl("^day_number", term) ~ "Day of study",
       grepl("^year", term) ~ "Year",
       grepl("^Habitat", term) ~ "Habitat",
-      grepl("^group_number", term) ~ "Group size",
+      grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
       grepl("^predator_cue", term) ~ "Cue"
     ),
     
     Level = case_when(
       term == "day_number" ~ "Day of study",
-      term == "group_number" ~ "Group size",
+      term == "group_number" ~ "Number of neighbors",
       term == "year2024" ~ "Year = 2024",
       term == "HabitatClosed" ~ "Habitat = Closed",
       term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
@@ -285,14 +340,14 @@ results_Vigilance_2s_scanning <- coefs_vigilance %>%
       grepl("^day_number", term) ~ "Day of study",
       grepl("^year", term) ~ "Year",
       grepl("^Habitat", term) ~ "Habitat",
-      grepl("^group_number", term) ~ "Group size",
+      grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
       grepl("^predator_cue", term) ~ "Cue"
     ),
     
     Level = case_when(
       term == "day_number" ~ "Day of study",
-      term == "group_number" ~ "Group size",
+      term == "group_number" ~ "Number of neighbors",
       term == "year2024" ~ "Year = 2024",
       term == "HabitatClosed" ~ "Habitat = Closed",
       term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
@@ -361,14 +416,14 @@ results_Vigilance_2s_lookABR<- coefs_vigilance %>%
       grepl("^day_number", term) ~ "Day of study",
       grepl("^year", term) ~ "Year",
       grepl("^Habitat", term) ~ "Habitat",
-      grepl("^group_number", term) ~ "Group size",
+      grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
       grepl("^predator_cue", term) ~ "Cue"
     ),
     
     Level = case_when(
       term == "day_number" ~ "Day of study",
-      term == "group_number" ~ "Group size",
+      term == "group_number" ~ "Number of neighbors",
       term == "year2024" ~ "Year = 2024",
       term == "HabitatClosed" ~ "Habitat = Closed",
       term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
@@ -436,14 +491,14 @@ results_Vigilance_2s_notlookABR<- coefs_vigilance %>%
       grepl("^day_number", term) ~ "Day of study",
       grepl("^year", term) ~ "Year",
       grepl("^Habitat", term) ~ "Habitat",
-      grepl("^group_number", term) ~ "Group size",
+      grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
       grepl("^predator_cue", term) ~ "Cue"
     ),
     
     Level = case_when(
       term == "day_number" ~ "Day of study",
-      term == "group_number" ~ "Group size",
+      term == "group_number" ~ "Number of neighbors",
       term == "year2024" ~ "Year = 2024",
       term == "HabitatClosed" ~ "Habitat = Closed",
       term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
