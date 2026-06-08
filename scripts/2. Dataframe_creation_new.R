@@ -132,46 +132,27 @@ saveRDS(Baboon_flight_binary, "data_derived/Baboon_flight_binary_df.rds")
 
 # DATAFRAME FOR LATENCY TO FLEE ----------------------------------------
 
-#create column by grouping videos by file_name and then labeling them with 0 if no flight present and 1 if flight present
 Baboon_flight_latency <- Final_2021_2024 %>%
-  group_by(file_name) %>% 
-  mutate(flight_present = if_else(any(str_detect(Behaviour, "Flight")), 1, 0)) %>%
-  ungroup()
-
-#filter for videos where flight is present (flight_present = 1) 
-Baboon_flight_latency <- Baboon_flight_latency %>%
-  filter(flight_present == 1)
-
-#calculate latency to flee
-Baboon_flight_latency <- Baboon_flight_latency %>%
-  group_by(file_name) %>%
-  arrange(frame) %>%  # Arrange by frame within each file_name
-  mutate(
-    first_row = first(row_number()),  # Get the first row number of each video
-    rows_until_flight = if_else(
-      flight_present == 1 & Behaviour == "Flight" & row_number() == min(which(Behaviour == "Flight")), 
-      row_number() - first_row, 
-      NA_integer_
-    )
-  ) %>%
-  ungroup() %>%
-  group_by(file_name) %>%
-  mutate(rows_until_flight = if_else(flight_present == 1, min(rows_until_flight, na.rm = TRUE), NA_integer_)) %>%
-  ungroup()
-
-#convert frames until seconds = latency by dividing by 30 bc 1s = 30 frames
-Baboon_flight_latency <- Baboon_flight_latency %>%
-  mutate(latency_to_flee_s = rows_until_flight / 30)
-
-#Dataframe for latency to flee model - WHY ONLY 152 VIDEOS??
-Baboon_flight_latency <- Baboon_flight_latency %>%
-  group_by(file_name, Habitat, age_sex_class, site, predator_cue, group_number, offspring, year) %>%
+  arrange(file_name, frame) %>%
+  group_by(file_name, Habitat, age_sex_class, site, predator_cue, 
+           group_number, offspring, year) %>%
+  mutate(frame_id = row_number()) %>%  # ✅ resets frame count per video
   summarise(
-    latency_to_flee = first(na.omit(latency_to_flee_s)),  # Get first non-NA value
+    flight_present = any(Behaviour == "Flight"),
+    
+    latency_frames = if (any(Behaviour == "Flight")) {
+      min(frame_id[Behaviour == "Flight"]) - 1
+    } else {
+      NA_real_
+    },
+    
     .groups = "drop"
   ) %>%
-  drop_na(latency_to_flee, predator_cue, Habitat, age_sex_class, group_number, offspring) %>% #need to drop one video where age_sex_class is NA for analysis
-  mutate(log_latency_to_flee = log(latency_to_flee + 1)) 
+  filter(flight_present) %>%
+  mutate(
+    latency_to_flee = latency_frames / 30,
+    log_latency_to_flee = log(latency_to_flee + 1)
+  )
 
 # Join bounding boxes
 Baboon_flight_latency <- Baboon_flight_latency %>%
@@ -188,4 +169,19 @@ Baboon_flight_latency_predator <- Baboon_flight_latency %>%
 mean(Baboon_flight_latency_predator$latency_to_flee, na.rm = TRUE)
 sd(Baboon_flight_latency_predator$latency_to_flee, na.rm = TRUE)
 
+# calculate mean latency to flee for control cues
+Baboon_flight_latency_control <- Baboon_flight_latency %>%
+  filter(predator_cue == "Control") 
+mean(Baboon_flight_latency_control$latency_to_flee, na.rm = TRUE)
+sd(Baboon_flight_latency_control$latency_to_flee, na.rm = TRUE)
+
+# Calculate percentages that fled w/in 1, 2 seconds
+Baboon_flight_latency_predator %>%
+  summarise(
+    n_total = sum(!is.na(latency_to_flee)),
+    n_under_1s = sum(latency_to_flee < 1, na.rm = TRUE),
+    percent_under_1s = (n_under_1s / n_total) * 100,
+    n_under_2s = sum(latency_to_flee < 2, na.rm = TRUE),
+    percent_under_2s = (n_under_2s / n_total) * 100
+  )
 
