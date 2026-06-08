@@ -1,4 +1,4 @@
-#Script for model averaging for proportion vigilance and flight frequency
+#Script for proportion vigilance and flight frequency (global models)
 
 #load packages
 library(glmmTMB)
