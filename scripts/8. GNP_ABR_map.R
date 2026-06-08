@@ -174,7 +174,7 @@ ggplot() +
     linetype = guide_legend(order = 3)  # Roads
   )
 
-
+ggsave("figures/ABR_map.png", width = 6, height = 4, dpi = 300)
 
 #Map of Goronogosa National Park in Mozambique
 
