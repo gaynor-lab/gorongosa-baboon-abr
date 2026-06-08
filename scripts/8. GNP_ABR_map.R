@@ -1,11 +1,12 @@
 #Script for creating map of Gorongosa National Park and ABR sites
 
 #load packages
-library(readxl)
 library(dplyr)
 library(sf)
 library(ggplot2)
 library(ggspatial)
+library(ggforce)
+library(tidyr)
 
 #Map of ABR sites 
 
@@ -18,7 +19,14 @@ Africa <- st_read("data/GNP_shp/ne_10m_admin_0_countries.shp") %>%
 GNP_boundary_only <- st_read("data/GNP_shp/WDPA_WDOECM_Nov2025_Public_801_shp-polygons.shp")
 
 #load ABR data
-ABR_data <- read.csv("data/ABR_locations.csv")
+ABR_data <- read.csv("data/ABR_locations.csv") %>% 
+  mutate(
+  # replace NA with 0 so pies still render
+  X2021 = ifelse(is.na(X2021), 0, X2021),
+  X2024 = ifelse(is.na(X2024), 0, X2024),
+  alpha_val = ifelse(Habitat == "Open", 0.9, 0.4)  # transparency
+)
+
 
 # Convert ABR locations to sf object 
 ABR_data <- st_as_sf(
@@ -39,51 +47,101 @@ GNP_boundary_only <- st_transform(GNP_boundary_only, crs_ref)
 #create bounding box
 bbox <- st_bbox(ABR_data)
 
-#plot
+
+# ---- Convert sf → data frame with coordinates ----
+points_df <- ABR_data %>%
+  st_coordinates() %>%
+  as.data.frame() %>%
+  bind_cols(st_drop_geometry(ABR_data)) %>%
+  rename(lon = X, lat = Y)
+
+# ---- Prepare pie data ----
+pie_df <- points_df %>%
+  mutate(
+    X2021 = ifelse(is.na(X2021), 0, X2021),
+    X2024 = ifelse(is.na(X2024), 0, X2024)
+  ) %>%
+  pivot_longer(
+    cols = c(X2021, X2024),
+    names_to = "year",
+    values_to = "value"
+  ) %>%
+  mutate(year = gsub("^X", "", year)) %>%   # remove "X"
+  group_by(Site) %>%
+  mutate(
+    frac = value / sum(value),
+    ymax = cumsum(frac),
+    ymin = lag(ymax, default = 0)
+  ) %>%
+  ungroup()
+
+# ---- Plot ----
 ggplot() +
   
-  # Park background
-  geom_sf(data = GNP_boundary_only, fill = "#A3B18A", color = "black") +
-  
-  # Lake Urema
+  # Lake
   geom_sf(data = Lake_urema, fill = "steelblue3", alpha = 0.6) +
   
   # Roads
-  geom_sf(data = Roads, aes(linetype = "Roads"), color = "grey40", size = 0.3) +
-  
-  # Camera trap points
   geom_sf(
-    data = ABR_data,
-    aes(color = Habitat, size = total),
-    alpha = 0.9
+    data = Roads,
+    aes(linetype = "Roads"),
+    color = "grey40",
+    size = 0.3
   ) +
   
-  # Zoom window (with buffer)
+  # Pie charts
+  geom_arc_bar(
+    data = pie_df,
+    aes(
+      x0 = lon,
+      y0 = lat,
+      r0 = 0,
+      r = sqrt(total) / max(sqrt(points_df$total)) * 800,
+      start = ymin * 2 * pi,
+      end = ymax * 2 * pi,
+      fill = Habitat,
+      alpha = year   
+    ),
+    color = "black",   
+    size = 0.3
+  ) +
+  
+  # Zoom extent
   coord_sf(
     xlim = c(bbox["xmin"] - 1000, bbox["xmax"] + 1000),
     ylim = c(bbox["ymin"] - 1000, bbox["ymax"] + 1000),
     expand = FALSE
   ) +
   
-  # Habitats
-  scale_color_manual(
-    values = c(
-      "Open" = "#0A0A52",   
-      "Closed" = "#A23B2A"
-    ),
-    name = "Habitat"
+  guides(
+    fill = guide_legend(order = 1),      # Habitat
+    alpha = guide_legend(order = 2),     # Year
+    linetype = guide_legend(order = 3)   # Roads
   ) +
   
-  # Roads legend using linetype
+  # Habitat colors
+  scale_fill_manual(
+    name = "Habitat",
+    values = c(
+      "Open" = "#0A0A52",
+      "Closed" = "#A23B2A"
+    )
+  ) +
+  
+  # Year transparency
+  scale_alpha_manual(
+    name = "Year",
+    values = c(
+      "2021" = 0.5,
+      "2024" = 1
+    )
+  ) +
+  
+  
+  # Roads legend
   scale_linetype_manual(
     values = c("Roads" = "solid"),
     name = " "
-  ) +
-  
-  # Video count sizes
-  scale_size_continuous(
-    range = c(2, 10),
-    name = "Baboon Observations",
   ) +
   
   # Scale bar
@@ -92,14 +150,31 @@ ggplot() +
     width_hint = 0.3
   ) +
   
-  # Remove axes + grid
+  # Clean map styling
   theme_minimal() +
   theme(
     axis.text = element_blank(),
     axis.title = element_blank(),
     axis.ticks = element_blank(),
-    panel.grid = element_blank(),
+    panel.grid = element_blank()
+  ) +
+  
+  # Set legend order
+  guides(
+    fill = guide_legend(order = 1),  # Habitat
+    
+    alpha = guide_legend(
+      order = 2,
+      override.aes = list(
+        fill = "black",
+        color = "black"
+      )
+    ),
+    
+    linetype = guide_legend(order = 3)  # Roads
   )
+
+
 
 #Map of Goronogosa National Park in Mozambique
 
