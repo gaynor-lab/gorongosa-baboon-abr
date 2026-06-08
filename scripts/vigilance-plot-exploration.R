@@ -23,7 +23,8 @@ vigilance_plot <- model_output %>%
         legend.position = "none") +
   scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
   coord_flip() + # switch x and y coordinates
-  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_1s_all") +
+  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_1s_all",
+       subtitle = "All types of vigilance") +
   scale_color_manual(values = c("#0077B6", "#1e9b56",  "#4c00b0", "#f27229", "#ea3633", "#f8be1d"))
 
 # B
@@ -43,7 +44,8 @@ vigilance_plotB <- model_output %>%
         legend.position = "none") +
   scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
   coord_flip() + # switch x and y coordinates
-  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_2s_all") +
+  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_2s_all",
+       subtitle = "All types of vigilance") +
   scale_color_manual(values = c("#0077B6", "#1e9b56",  "#4c00b0", "#f27229", "#ea3633", "#f8be1d"))
 
 # C
@@ -63,7 +65,8 @@ vigilance_plotC <- model_output %>%
         legend.position = "none") +
   scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
   coord_flip() + # switch x and y coordinates
-  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_2s_scanning") +
+  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_2s_scanning",
+       subtitle = "Scanning only") +
   scale_color_manual(values = c("#0077B6", "#1e9b56",  "#4c00b0", "#f27229", "#ea3633", "#f8be1d"))
 
 # D
@@ -83,7 +86,8 @@ vigilance_plotD <- model_output %>%
         legend.position = "none") +
   scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
   coord_flip() + # switch x and y coordinates
-  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_2s_lookABR") +
+  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_2s_lookABR", 
+       subtitle = "Staring, walking/staring, standing/staring, startling") +
   scale_color_manual(values = c("#0077B6", "#1e9b56",  "#4c00b0", "#f27229", "#ea3633", "#f8be1d"))
 
 
@@ -104,16 +108,23 @@ vigilance_plotE <- model_output %>%
         legend.position = "none") +
   scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
   coord_flip() + # switch x and y coordinates
-  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_2s_notlookABR") +
+  labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance_2s_notlookABR",
+       subtitle = "Scanning, walking non-vigilant") +
   scale_color_manual(values = c("#0077B6", "#1e9b56",  "#4c00b0", "#f27229", "#ea3633", "#f8be1d"))
 
 
-combined_plot <- (vigilance_plot + vigilance_plotB + vigilance_plotC + vigilance_plotD + vigilance_plotE) +
+(combined_plot <- (vigilance_plot + vigilance_plotB + vigilance_plotC + vigilance_plotD + vigilance_plotE) +
   plot_annotation(
     tag_levels = 'A', 
     tag_suffix = ""
   ) &
-  theme(plot.tag = element_text(size = 14))
+  theme(plot.tag = element_text(size = 14)))
 
-combined_plot
+# refined subset
+(combined_plot <- (vigilance_plotB + vigilance_plotC + vigilance_plotD + vigilance_plotE) +
+    plot_annotation(
+      tag_levels = 'A', 
+      tag_suffix = ""
+    ) &
+    theme(plot.tag = element_text(size = 14)))
 
