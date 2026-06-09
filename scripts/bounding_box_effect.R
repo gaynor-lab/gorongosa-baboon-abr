@@ -8,6 +8,7 @@ library(performance)
 library(stringr)
 library(ggplot2)
 library(ggeffects)
+library(patchwork)
 
 # Vigilance models --------------------------------------------------------
 
@@ -88,8 +89,8 @@ Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>%
 
 
 #Global GLMM using beta distribution
-Vigilance_global_model <- glmmTMB(proportion_vigilant_beta ~ predator_cue + year + Habitat + 
-                                    age_sex_class*initial_max_dimension_scaled + group_number_scaled + day_number_scaled + (1|site),
+Vigilance_global_model <- glmmTMB(proportion_vigilant_beta ~ 
+                                    age_sex_class*initial_max_dimension_scaled  + (1|site),
                                   data = Baboon_vigilance_df_nocontrol,
                                   family = beta_family(),
                                   na.action = na.fail) 
@@ -136,38 +137,87 @@ ggplot(plot_df, aes(x = Estimate, y = term)) +
     y = NULL
   )
 
-# Get marginal effects
-me <- ggpredict(
-  Vigilance_global_model,
-  terms = c("initial_max_dimension_scaled [all]", "age_sex_class"),
-  bias_correction = TRUE
-) 
-
-me <- as.data.frame(me)
+library(purrr)
 
 # Get original mean and SD (before scaling)
 orig_mean <- mean(Baboon_vigilance_df_nocontrol$initial_max_dimension, na.rm = TRUE)
 orig_sd   <- sd(Baboon_vigilance_df_nocontrol$initial_max_dimension, na.rm = TRUE)
 
+# Find empirical ranges per group (UNSCALED)
+ranges <- Baboon_vigilance_df_nocontrol %>%
+  group_by(age_sex_class) %>%
+  summarise(
+    xmin = min(initial_max_dimension, na.rm = TRUE),
+    xmax = max(initial_max_dimension, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  # convert to scaled units (since model uses scaled predictor)
+  mutate(
+    xmin_scaled = (xmin - orig_mean) / orig_sd,
+    xmax_scaled = (xmax - orig_mean) / orig_sd
+  )
 
-# Back-transform x
+# Generate marginal effects per group
+me <- map_dfr(1:nrow(ranges), function(i) {
+  
+  g <- as.character(ranges$age_sex_class[i])
+  
+  pred <- ggpredict(
+    Vigilance_global_model,
+    terms = c(
+      paste0(
+        "initial_max_dimension_scaled [",
+        ranges$xmin_scaled[i], ":",
+        ranges$xmax_scaled[i],
+        " by=0.1]"
+      ),
+      "age_sex_class"
+    ),
+    bias_correction = TRUE
+  ) %>%
+    as.data.frame()
+  
+  # keep only this group
+  pred <- pred %>% filter(group == g)
+  
+  return(pred)
+})
+
+# Back-transform x-axis
 me <- me %>%
   mutate(
     x_original = x * orig_sd + orig_mean
   )
 
 # Plot
-ggplot(me, aes(x = x_original, y = predicted)) +
+a <- ggplot(me, aes(x = x_original, y = predicted)) +
   geom_line(size = 1) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high),
               alpha = 0.2, color = NA) +
-  facet_wrap(~ group) +
+  geom_rug(
+    data = Baboon_vigilance_df_nocontrol %>%
+      rename(group = age_sex_class),
+    aes(x = initial_max_dimension),
+    inherit.aes = FALSE,
+    alpha = 0.2
+  ) +
+  ylim(0, 1) +
+  facet_wrap(~ group,
+             labeller = labeller(
+               group = c(
+                 "Female_Adult_no_offspring" = "Female adult (no offspring)",
+                 "Female_Adult_with_offspring" = "Female adult (with offspring)",
+                 "Juvenile" = "Juvenile",
+                 "Male_Adult" = "Adult male"
+               ))
+             ) +
   theme_bw() +
   labs(
-    x = "Proximity to camera (initial max dimension, px)",
-    y = "Predicted proportion vigilant",
+    x = "Proximity to camera (initial max dimension, pixels)",
+    y = "Predicted proportion vigilant"
   ) +
   theme(legend.position = "none")
+
 
 
 
@@ -244,8 +294,8 @@ Baboon_flight_df_nocontrol <- Baboon_flight_df_nocontrol %>%
 
 
 #Global GLMM with binomial distribution
-Flight_global_model <- glmmTMB(flight_present ~ predator_cue + year + Habitat + 
-                                 age_sex_class * initial_max_dimension_scaled + group_number_scaled + day_number_scaled + (1|site),
+Flight_global_model <- glmmTMB(flight_present ~ 
+                                 age_sex_class * initial_max_dimension_scaled + (1|site),
                                data = Baboon_flight_df_nocontrol,
                                family = binomial(),
                                na.action = na.fail)
@@ -292,37 +342,91 @@ ggplot(plot_df, aes(x = Estimate, y = term)) +
   )
 
 
-# Get marginal effects
-me <- ggpredict(
-  Flight_global_model,
-  terms = c("initial_max_dimension_scaled [all]", "age_sex_class"),
-  bias_correction = TRUE
-) 
-
-me <- as.data.frame(me)
-
 # Get original mean and SD (before scaling)
 orig_mean <- mean(Baboon_flight_df_nocontrol$initial_max_dimension, na.rm = TRUE)
 orig_sd   <- sd(Baboon_flight_df_nocontrol$initial_max_dimension, na.rm = TRUE)
 
+# Find empirical ranges per group (UNSCALED)
+ranges <- Baboon_flight_df_nocontrol %>%
+  group_by(age_sex_class) %>%
+  summarise(
+    xmin = min(initial_max_dimension, na.rm = TRUE),
+    xmax = max(initial_max_dimension, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  # convert to scaled units (because model uses scaled predictor)
+  mutate(
+    xmin_scaled = (xmin - orig_mean) / orig_sd,
+    xmax_scaled = (xmax - orig_mean) / orig_sd
+  )
 
-# Back-transform x
+# Generate marginal effects per group (THIS IS THE KEY FIX)
+me <- map_dfr(1:nrow(ranges), function(i) {
+  
+  g <- as.character(ranges$age_sex_class[i])
+  
+  # generate predictions only within this group's range
+  pred <- ggpredict(
+    Flight_global_model,
+    terms = c(
+      paste0(
+        "initial_max_dimension_scaled [",
+        ranges$xmin_scaled[i], ":",
+        ranges$xmax_scaled[i],
+        " by=0.1]"
+      ),
+      "age_sex_class"
+    ),
+    bias_correction = TRUE
+  ) %>%
+    as.data.frame()
+  
+  # KEEP ONLY this group (ggpredict returns all groups otherwise)
+  pred <- pred %>% filter(group == g)
+  
+  return(pred)
+})
+
+# Back-transform x-axis
 me <- me %>%
   mutate(
     x_original = x * orig_sd + orig_mean
   )
 
 # Plot
-ggplot(me, aes(x = x_original, y = predicted)) +
+b <- ggplot(me, aes(x = x_original, y = predicted)) +
   geom_line(size = 1) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high),
               alpha = 0.2, color = NA) +
-  facet_wrap(~ group) +
+  geom_rug(
+    data = Baboon_flight_df_nocontrol %>%
+      rename(group = age_sex_class),
+    aes(x = initial_max_dimension),
+    inherit.aes = FALSE,
+    alpha = 0.2
+  ) +
+  ylim(0, 1) +
+  facet_wrap(~ group,
+             labeller = labeller(
+               group = c(
+                 "Female_Adult_no_offspring" = "Female adult (no offspring)",
+                 "Female_Adult_with_offspring" = "Female adult (with offspring)",
+                 "Juvenile" = "Juvenile",
+                 "Male_Adult" = "Adult male"
+               ))
+             ) +
   theme_bw() +
   labs(
-    x = "Proximity to camera (initial max dimension, px)",
-    y = "Predicted proportion vigilant",
+    x = "Proximity to camera (initial max dimension, pixels)",
+    y = "Predicted probability of flight"
   ) +
   theme(legend.position = "none")
 
+(combined_plot <- (b / a) +
+  plot_annotation(
+    tag_levels = 'A', 
+    tag_suffix = ""
+  ) &
+  theme(plot.tag = element_text(size = 14)))
 
+ggsave("figures/bounding-box-plot.png", width = 8, height = 10, dpi = 300)
