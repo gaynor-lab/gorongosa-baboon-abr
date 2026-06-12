@@ -111,31 +111,14 @@ Baboon_vigilance <- Baboon_vigilance %>%
   mutate(
     total_frames = n(),  # Count total frames per file_name
     vigilant_frames = sum(behaviour_class == "Vigilant", na.rm = TRUE),  # Count Vigilant frames
-    look_at_abr_frames = sum(Behaviour == "Staring", # Count frames looking at ABR
-                             Behaviour == "Walking_V",
-                             Behaviour == "Startling",
-                             Behaviour == "Stand_stare",
-                             na.rm = TRUE),
-    look_at_abr_cons_frames = sum(Behaviour == "Staring", # Count frames looking at ABR
-                             Behaviour == "Startling",
-                             Behaviour == "Stand_stare",
-                             na.rm = TRUE),
-    scanning_frames = sum(Behaviour == "Scanning", na.rm = TRUE),  # Count Scanning frames
-    look_not_abr_frames = sum(Behaviour == "Scanning", 
-                              Behaviour == "Walking_NV",
-                              na.rm = TRUE),
     occluded_frames = sum(behaviour_class == "Occluded", na.rm = TRUE),  # Count Occluded frames
     nonoccluded_frames = total_frames - occluded_frames,
     
     # Calculate vigilance proportion
     proportion_vigilant = if_else(total_frames == occluded_frames, NA, vigilant_frames / nonoccluded_frames),  # Compute proportion or set NA if occluded frames = total frames
-    proportion_look_at_abr = if_else(total_frames == occluded_frames, NA, look_at_abr_frames / nonoccluded_frames),
-    proportion_look_at_abr_cons = if_else(total_frames == occluded_frames, NA, look_at_abr_cons_frames / nonoccluded_frames),
-    proportion_scanning = if_else(total_frames == occluded_frames, NA, scanning_frames / nonoccluded_frames),
-    proportion_look_not_abr = if_else(total_frames == occluded_frames, NA, look_not_abr_frames / nonoccluded_frames),
-    
+
     # Transform data for beta distribution using Smithson & Verkuilen transformation
-    mutate(proportion_vigilant_beta = (proportion_vigilant * (n() - 1) + 0.5) / n())
+    proportion_vigilant_beta = (proportion_vigilant * (n() - 1) + 0.5) / n()
   ) %>%
   ungroup() 
 
