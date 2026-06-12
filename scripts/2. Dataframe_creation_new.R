@@ -1,4 +1,4 @@
-#Creation of dataframes for each response variable (proportion vigilance, latency to flee, flight)
+# 2. Creation of dataframes for each response variable (proportion vigilance, flight, latency to flee)
 
 # Load packages
 library(dplyr)
@@ -12,6 +12,9 @@ Final_2021 <- readRDS("data_derived/Final_2021.rds")
 
 # Bring in bounding box summary
 bbox <- read.csv("data_derived/bounding_box_summary.csv")
+
+# Bring in date/time offsets for correction
+offsets <- read.csv("data/files_requiring_offset.csv")
 
 # Combine years
 Final_2021_2024 <- bind_rows(Final_2021, Final_2024)
@@ -33,7 +36,7 @@ Final_2021_2024 <- Final_2021_2024 %>%
   slice((sound_delay_s[1] * 30 + 1):n()) %>%
   ungroup()
 
-# Calculate other covariates
+# Calculate/format other covariates
 Final_2021_2024 <- Final_2021_2024 %>%
   mutate(Habitat = case_when(
     site %in% c("E02", "F01", "F03", "F07", "I04", "J03", "J13", "N03", "N10", "N11") ~ "Open",
@@ -111,6 +114,10 @@ Baboon_vigilance_by_video <- Baboon_vigilance %>%
 # Join bounding boxes
 Baboon_vigilance_by_video <- Baboon_vigilance_by_video %>%
   left_join(bbox, by = "file_name")
+
+# Remove any videos where the baboon was present for <2 seconds
+Baboon_vigilance_by_video <- Baboon_vigilance_by_video %>% 
+  filter(nonoccluded_frames > 60) 
 
 #export dataframe 
 saveRDS(Baboon_vigilance_by_video, "data_derived/Baboon_vigilance_df.rds")

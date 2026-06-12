@@ -82,30 +82,29 @@ Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df %>%
 
 # Prevalence of types of vigilance ----------------------------------------
 
-# Remove any videos where the baboon was present for <2 seconds
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 60) %>% 
+# Calculate proportion walking non-vigilant
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(proportion_walking_nv = proportion_look_not_abr - proportion_scanning)
 
-hist(Baboon_vigilance_df_nocontrol_2sec$proportion_vigilant)
-hist(Baboon_vigilance_df_nocontrol_2sec$proportion_look_at_abr)
-hist(Baboon_vigilance_df_nocontrol_2sec$proportion_scanning)
-hist(Baboon_vigilance_df_nocontrol_2sec$proportion_look_not_abr)
-hist(Baboon_vigilance_df_nocontrol_2sec$proportion_look_at_abr_cons)
+hist(Baboon_vigilance_df_nocontrol$proportion_vigilant)
+hist(Baboon_vigilance_df_nocontrol$proportion_look_at_abr)
+hist(Baboon_vigilance_df_nocontrol$proportion_scanning)
+hist(Baboon_vigilance_df_nocontrol$proportion_look_not_abr)
+hist(Baboon_vigilance_df_nocontrol$proportion_look_at_abr_cons)
 
-mean(Baboon_vigilance_df_nocontrol_2sec$proportion_vigilant)
-mean(Baboon_vigilance_df_nocontrol_2sec$proportion_look_at_abr)
-mean(Baboon_vigilance_df_nocontrol_2sec$proportion_scanning)
-mean(Baboon_vigilance_df_nocontrol_2sec$proportion_look_not_abr)
+mean(Baboon_vigilance_df_nocontrol$proportion_vigilant)
+mean(Baboon_vigilance_df_nocontrol$proportion_look_at_abr)
+mean(Baboon_vigilance_df_nocontrol$proportion_scanning)
+mean(Baboon_vigilance_df_nocontrol$proportion_look_not_abr)
 
 # Calculate some totals
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(total_vigilant_frames = proportion_vigilant * nonoccluded_frames,
          total_look_at_abr_frames = proportion_look_at_abr * nonoccluded_frames,
          total_scanning_frames = proportion_scanning * nonoccluded_frames,
          total_look_not_abr_frames = proportion_look_not_abr * nonoccluded_frames)
 
-Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol %>% 
   summarise(total_vigilant_frames = sum(total_vigilant_frames),
             total_look_at_abr_frames = sum(total_look_at_abr_frames),
             total_scanning_frames = sum(total_scanning_frames),
@@ -117,7 +116,7 @@ Baboon_vigilance_df_nocontrol_2sec %>%
 
 library(ggcorrplot)
 
-df_corr <- Baboon_vigilance_df_nocontrol_2sec %>%
+df_corr <- Baboon_vigilance_df_nocontrol %>%
   select(
     proportion_vigilant,
     proportion_look_at_abr,
@@ -139,96 +138,17 @@ ggcorrplot(
 ) 
 
 
-  # All vigilance, 1 second -------------------------------------------------
-
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df_nocontrol_1sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 30) 
-
-# Scale covariates
-Baboon_vigilance_df_nocontrol_1sec <- Baboon_vigilance_df_nocontrol_1sec %>% 
-  mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
-               group_number = scale(group_number, center = TRUE, scale = TRUE))
-
-#Global GLMM using beta distribution
-Vigilance_global_model <- glmmTMB(proportion_vigilant_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
-                                  data = Baboon_vigilance_df_nocontrol_1sec,
-                                  family = beta_family(),
-                                  na.action = na.fail) 
-
-#Get results
-summary(Vigilance_global_model)
-print(Vigilance_global_model)
-
-# 95% confidence intervals
-confint(Vigilance_global_model, level = 0.95)
-
-#R-squared 
-r.squaredGLMM(Vigilance_global_model)
-
-# Extract coefficients
-coefs_vigilance <- summary(Vigilance_global_model)$coefficients$cond %>%
-  as.data.frame() %>%
-  tibble::rownames_to_column("term") 
-
-# Extract confidence intervals
-cis_vigilance <- confint(Vigilance_global_model, level = 0.95) %>%
-  as.data.frame() %>%
-  tibble::rownames_to_column("term") 
-
-# Join together
-results_Vigilance_1s_all <- coefs_vigilance %>%
-  select(term, Estimate) %>%
-  left_join(
-    cis_vigilance %>% select(term, `2.5 %`, `97.5 %`),
-    by = "term"
-  ) %>%
-  mutate(
-    Response = "Vigilance_1s_all",
-    
-    Covariate = case_when(
-      grepl("^day_number", term) ~ "Day of study",
-      grepl("^year", term) ~ "Year",
-      grepl("^Habitat", term) ~ "Habitat",
-      grepl("^group_number", term) ~ "Number of neighbors",
-      grepl("^age_sex_class", term) ~ "Age-sex class",
-      grepl("^predator_cue", term) ~ "Cue"
-    ),
-    
-    Level = case_when(
-      term == "day_number" ~ "Day of study",
-      term == "group_number" ~ "Number of neighbors",
-      term == "year2024" ~ "Year = 2024",
-      term == "HabitatClosed" ~ "Habitat = Closed",
-      term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
-      term == "age_sex_classJuvenile" ~"Class = Juvenile",
-      term == "age_sex_classMale_Adult" ~ "Class = Male adult",
-      term == "predator_cueHyena" ~ "Species = Hyena",
-      term == "predator_cueLeopard" ~ "Species = Leopard",
-      term == "predator_cueLion" ~ "Species = Lion",
-      term == "predator_cueWild dog" ~"Species = Wild dog"
-    ),
-    Mean = Estimate,
-    LCI = `2.5 %`,
-    UCI = `97.5 %`,
-  ) %>%
-  select(Response, Covariate, Level, Mean, LCI, UCI)
-
 
 # All vigilance, 2 second -------------------------------------------------
 
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 60) 
-
 # Scale covariates
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
          group_number = scale(group_number, center = TRUE, scale = TRUE))
 
 #Global GLMM using beta distribution
 Vigilance_global_model <- glmmTMB(proportion_vigilant_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
-                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  data = Baboon_vigilance_df_nocontrol,
                                   family = beta_family(),
                                   na.action = na.fail) 
 
@@ -293,19 +213,14 @@ results_Vigilance_2s_all <- coefs_vigilance %>%
 
 # Scanning, 2 second -------------------------------------------------
 
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 60) 
-
-
 # Scale covariates
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
                group_number = scale(group_number, center = TRUE, scale = TRUE))
 
 #Global GLMM using beta distribution
 Vigilance_global_model <- glmmTMB(proportion_scanning_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
-                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  data = Baboon_vigilance_df_nocontrol,
                                   family = beta_family(),
                                   na.action = na.fail) 
 
@@ -369,19 +284,14 @@ results_Vigilance_2s_scanning <- coefs_vigilance %>%
 
 # Look at ABR, 2 second -------------------------------------------------
 
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 60) 
-
-
 # Scale covariates
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
                group_number = scale(group_number, center = TRUE, scale = TRUE))
 
 #Global GLMM using beta distribution
 Vigilance_global_model <- glmmTMB(proportion_look_at_abr_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
-                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  data = Baboon_vigilance_df_nocontrol,
                                   family = beta_family(),
                                   na.action = na.fail) 
 
@@ -445,18 +355,14 @@ results_Vigilance_2s_lookABR<- coefs_vigilance %>%
 
 # Look NOT at ABR, 2 second -------------------------------------------------
 
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 60) 
-
 # Scale covariates
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
                group_number = scale(group_number, center = TRUE, scale = TRUE))
 
 #Global GLMM using beta distribution
 Vigilance_global_model <- glmmTMB(proportion_look_not_abr_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
-                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  data = Baboon_vigilance_df_nocontrol,
                                   family = beta_family(),
                                   na.action = na.fail) 
 
@@ -520,19 +426,14 @@ results_Vigilance_2s_notlookABR<- coefs_vigilance %>%
 
 # Look at ABR, 2 second -------------------------------------------------
 
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 60) 
-
-
 # Scale covariates
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
          group_number = scale(group_number, center = TRUE, scale = TRUE))
 
 #Global GLMM using beta distribution
 Vigilance_global_model <- glmmTMB(proportion_look_at_abr_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
-                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  data = Baboon_vigilance_df_nocontrol,
                                   family = beta_family(),
                                   na.action = na.fail) 
 
@@ -597,19 +498,14 @@ results_Vigilance_2s_lookABR<- coefs_vigilance %>%
 
 # Look at ABR conservative, 2 second -------------------------------------------------
 
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 60) 
-
-
 # Scale covariates
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
                group_number = scale(group_number, center = TRUE, scale = TRUE))
 
 #Global GLMM using beta distribution
 Vigilance_global_model <- glmmTMB(proportion_look_at_abr_cons_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
-                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  data = Baboon_vigilance_df_nocontrol,
                                   family = beta_family(),
                                   na.action = na.fail) 
 
@@ -673,18 +569,14 @@ results_Vigilance_2s_lookABRcons<- coefs_vigilance %>%
 
 # Look NOT at ABR, 2 second -------------------------------------------------
 
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
-  filter(nonoccluded_frames > 60) 
-
 # Scale covariates
-Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>% 
   mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
                group_number = scale(group_number, center = TRUE, scale = TRUE))
 
 #Global GLMM using beta distribution
 Vigilance_global_model <- glmmTMB(proportion_look_not_abr_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
-                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  data = Baboon_vigilance_df_nocontrol,
                                   family = beta_family(),
                                   na.action = na.fail) 
 

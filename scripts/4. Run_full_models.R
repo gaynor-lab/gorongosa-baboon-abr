@@ -14,10 +14,6 @@ library(stringr)
 Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") %>% 
   filter(age_sex_class != "Unknown")
 
-# Remove any videos where the baboon was present for <2 seconds
-Baboon_vigilance_df <- Baboon_vigilance_df %>% 
-  filter(nonoccluded_frames > 60) 
-
 #make new column with month and day to test for sound habituation
 Baboon_vigilance_df <- Baboon_vigilance_df %>%
   mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
