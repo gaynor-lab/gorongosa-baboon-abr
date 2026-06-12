@@ -161,3 +161,34 @@ model_output %>%
 ggsave("figures/vigilance-sensitivity.png", width = 6, height = 6, dpi = 300)
 
   
+
+model_output %>%
+  filter(Response %in% c("Vigilance_2s_all", "Vigilance_2s_scanning", "Vigilance_2s_lookABR", "Vigilance_2s_lookABR_cons")) %>% 
+  ggplot(aes(x = Level, y = Mean, col = Response)) + 
+  geom_hline(aes(yintercept = 0), linetype="dashed", size = 0.5, color = "darkgrey") +
+  geom_errorbar(aes(ymin = LCI, ymax = UCI), width=0, 
+                position = position_dodge(width = 0.6), alpha=.75) +
+  geom_point(position = position_dodge(width = 0.6), size = 2) +
+  theme_minimal() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_text(size = 10),
+        axis.title.x = element_text(size = 12),
+        strip.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.background = element_blank()) +
+  scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
+  coord_flip() + 
+  scale_color_manual(values = c(
+    "Vigilance_2s_all" = "#D55E00",
+    "Vigilance_2s_scanning" = "#0072B2",
+    "Vigilance_2s_lookABR" = "#009E73",
+    "Vigilance_2s_lookABR_cons" = "purple"),
+    labels = c(
+      "All",
+      "Scanning",
+      "Looking at ABR",
+      "Looking at ABR (conservative)"
+    )
+    
+  ) +
+  labs(y = "Beta Coefficient", col = "Vigilance definition") 
