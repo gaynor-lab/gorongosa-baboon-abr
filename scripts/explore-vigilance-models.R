@@ -52,6 +52,7 @@ Baboon_vigilance_df <- Baboon_vigilance_df %>%
   mutate(proportion_vigilant_beta = (proportion_vigilant * (n() - 1) + 0.5) / n(),
          proportion_scanning_beta = (proportion_scanning * (n() - 1) + 0.5) / n(),
          proportion_look_at_abr_beta = (proportion_look_at_abr * (n() - 1) + 0.5) / n(),
+         proportion_look_at_abr_cons_beta = (proportion_look_at_abr_cons * (n() - 1) + 0.5) / n(),
          proportion_look_not_abr_beta = (proportion_look_not_abr * (n() - 1) + 0.5) / n()
          )
 
@@ -90,6 +91,7 @@ hist(Baboon_vigilance_df_nocontrol_2sec$proportion_vigilant)
 hist(Baboon_vigilance_df_nocontrol_2sec$proportion_look_at_abr)
 hist(Baboon_vigilance_df_nocontrol_2sec$proportion_scanning)
 hist(Baboon_vigilance_df_nocontrol_2sec$proportion_look_not_abr)
+hist(Baboon_vigilance_df_nocontrol_2sec$proportion_look_at_abr_cons)
 
 mean(Baboon_vigilance_df_nocontrol_2sec$proportion_vigilant)
 mean(Baboon_vigilance_df_nocontrol_2sec$proportion_look_at_abr)
@@ -121,6 +123,7 @@ df_corr <- Baboon_vigilance_df_nocontrol_2sec %>%
     proportion_look_at_abr,
     proportion_scanning,
     proportion_look_not_abr,
+    proportion_look_at_abr_cons,
     proportion_walking_nv
   ) %>%
   na.omit()
@@ -515,12 +518,240 @@ results_Vigilance_2s_notlookABR<- coefs_vigilance %>%
   ) %>%
   select(Response, Covariate, Level, Mean, LCI, UCI)
 
+# Look at ABR, 2 second -------------------------------------------------
+
+# Remove any videos where the baboon was present for <1 second
+Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
+  filter(nonoccluded_frames > 60) 
+
+
+# Scale covariates
+Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+  mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
+         group_number = scale(group_number, center = TRUE, scale = TRUE))
+
+#Global GLMM using beta distribution
+Vigilance_global_model <- glmmTMB(proportion_look_at_abr_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
+                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  family = beta_family(),
+                                  na.action = na.fail) 
+
+#Get results
+summary(Vigilance_global_model)
+print(Vigilance_global_model)
+
+# 95% confidence intervals
+confint(Vigilance_global_model, level = 0.95)
+
+#R-squared 
+r.squaredGLMM(Vigilance_global_model)
+
+# Extract coefficients
+coefs_vigilance <- summary(Vigilance_global_model)$coefficients$cond %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("term") 
+
+# Extract confidence intervals
+cis_vigilance <- confint(Vigilance_global_model, level = 0.95) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("term") 
+
+# Join together
+results_Vigilance_2s_lookABR<- coefs_vigilance %>%
+  select(term, Estimate) %>%
+  left_join(
+    cis_vigilance %>% select(term, `2.5 %`, `97.5 %`),
+    by = "term"
+  ) %>%
+  mutate(
+    Response = "Vigilance_2s_lookABR",
+    
+    Covariate = case_when(
+      grepl("^day_number", term) ~ "Day of study",
+      grepl("^year", term) ~ "Year",
+      grepl("^Habitat", term) ~ "Habitat",
+      grepl("^group_number", term) ~ "Number of neighbors",
+      grepl("^age_sex_class", term) ~ "Age-sex class",
+      grepl("^predator_cue", term) ~ "Cue"
+    ),
+    
+    Level = case_when(
+      term == "day_number" ~ "Day of study",
+      term == "group_number" ~ "Number of neighbors",
+      term == "year2024" ~ "Year = 2024",
+      term == "HabitatClosed" ~ "Habitat = Closed",
+      term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
+      term == "age_sex_classJuvenile" ~"Class = Juvenile",
+      term == "age_sex_classMale_Adult" ~ "Class = Male adult",
+      term == "predator_cueHyena" ~ "Species = Hyena",
+      term == "predator_cueLeopard" ~ "Species = Leopard",
+      term == "predator_cueLion" ~ "Species = Lion",
+      term == "predator_cueWild dog" ~"Species = Wild dog"
+    ),
+    Mean = Estimate,
+    LCI = `2.5 %`,
+    UCI = `97.5 %`,
+  ) %>%
+  select(Response, Covariate, Level, Mean, LCI, UCI)
+
+
+# Look at ABR conservative, 2 second -------------------------------------------------
+
+# Remove any videos where the baboon was present for <1 second
+Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
+  filter(nonoccluded_frames > 60) 
+
+
+# Scale covariates
+Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+  mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
+               group_number = scale(group_number, center = TRUE, scale = TRUE))
+
+#Global GLMM using beta distribution
+Vigilance_global_model <- glmmTMB(proportion_look_at_abr_cons_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
+                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  family = beta_family(),
+                                  na.action = na.fail) 
+
+#Get results
+summary(Vigilance_global_model)
+print(Vigilance_global_model)
+
+# 95% confidence intervals
+confint(Vigilance_global_model, level = 0.95)
+
+#R-squared 
+r.squaredGLMM(Vigilance_global_model)
+
+# Extract coefficients
+coefs_vigilance <- summary(Vigilance_global_model)$coefficients$cond %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("term") 
+
+# Extract confidence intervals
+cis_vigilance <- confint(Vigilance_global_model, level = 0.95) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("term") 
+
+# Join together
+results_Vigilance_2s_lookABRcons<- coefs_vigilance %>%
+  select(term, Estimate) %>%
+  left_join(
+    cis_vigilance %>% select(term, `2.5 %`, `97.5 %`),
+    by = "term"
+  ) %>%
+  mutate(
+    Response = "Vigilance_2s_lookABR_cons",
+    
+    Covariate = case_when(
+      grepl("^day_number", term) ~ "Day of study",
+      grepl("^year", term) ~ "Year",
+      grepl("^Habitat", term) ~ "Habitat",
+      grepl("^group_number", term) ~ "Number of neighbors",
+      grepl("^age_sex_class", term) ~ "Age-sex class",
+      grepl("^predator_cue", term) ~ "Cue"
+    ),
+    
+    Level = case_when(
+      term == "day_number" ~ "Day of study",
+      term == "group_number" ~ "Number of neighbors",
+      term == "year2024" ~ "Year = 2024",
+      term == "HabitatClosed" ~ "Habitat = Closed",
+      term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
+      term == "age_sex_classJuvenile" ~"Class = Juvenile",
+      term == "age_sex_classMale_Adult" ~ "Class = Male adult",
+      term == "predator_cueHyena" ~ "Species = Hyena",
+      term == "predator_cueLeopard" ~ "Species = Leopard",
+      term == "predator_cueLion" ~ "Species = Lion",
+      term == "predator_cueWild dog" ~"Species = Wild dog"
+    ),
+    Mean = Estimate,
+    LCI = `2.5 %`,
+    UCI = `97.5 %`,
+  ) %>%
+  select(Response, Covariate, Level, Mean, LCI, UCI)
+
+# Look NOT at ABR, 2 second -------------------------------------------------
+
+# Remove any videos where the baboon was present for <1 second
+Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol %>% 
+  filter(nonoccluded_frames > 60) 
+
+# Scale covariates
+Baboon_vigilance_df_nocontrol_2sec <- Baboon_vigilance_df_nocontrol_2sec %>% 
+  mutate(day_number = scale(day_number, center = TRUE, scale = TRUE),
+               group_number = scale(group_number, center = TRUE, scale = TRUE))
+
+#Global GLMM using beta distribution
+Vigilance_global_model <- glmmTMB(proportion_look_not_abr_beta ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
+                                  data = Baboon_vigilance_df_nocontrol_2sec,
+                                  family = beta_family(),
+                                  na.action = na.fail) 
+
+#Get results
+summary(Vigilance_global_model)
+print(Vigilance_global_model)
+
+# 95% confidence intervals
+confint(Vigilance_global_model, level = 0.95)
+
+#R-squared 
+r.squaredGLMM(Vigilance_global_model)
+
+# Extract coefficients
+coefs_vigilance <- summary(Vigilance_global_model)$coefficients$cond %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("term") 
+
+# Extract confidence intervals
+cis_vigilance <- confint(Vigilance_global_model, level = 0.95) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("term") 
+
+# Join together
+results_Vigilance_2s_notlookABR<- coefs_vigilance %>%
+  select(term, Estimate) %>%
+  left_join(
+    cis_vigilance %>% select(term, `2.5 %`, `97.5 %`),
+    by = "term"
+  ) %>%
+  mutate(
+    Response = "Vigilance_2s_notlookABR",
+    
+    Covariate = case_when(
+      grepl("^day_number", term) ~ "Day of study",
+      grepl("^year", term) ~ "Year",
+      grepl("^Habitat", term) ~ "Habitat",
+      grepl("^group_number", term) ~ "Number of neighbors",
+      grepl("^age_sex_class", term) ~ "Age-sex class",
+      grepl("^predator_cue", term) ~ "Cue"
+    ),
+    
+    Level = case_when(
+      term == "day_number" ~ "Day of study",
+      term == "group_number" ~ "Number of neighbors",
+      term == "year2024" ~ "Year = 2024",
+      term == "HabitatClosed" ~ "Habitat = Closed",
+      term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
+      term == "age_sex_classJuvenile" ~"Class = Juvenile",
+      term == "age_sex_classMale_Adult" ~ "Class = Male adult",
+      term == "predator_cueHyena" ~ "Species = Hyena",
+      term == "predator_cueLeopard" ~ "Species = Leopard",
+      term == "predator_cueLion" ~ "Species = Lion",
+      term == "predator_cueWild dog" ~"Species = Wild dog"
+    ),
+    Mean = Estimate,
+    LCI = `2.5 %`,
+    UCI = `97.5 %`,
+  ) %>%
+  select(Response, Covariate, Level, Mean, LCI, UCI)
 
 results_all <- bind_rows(results_Vigilance_1s_all,
                          results_Vigilance_2s_all,
                          results_Vigilance_2s_scanning,
                          results_Vigilance_2s_lookABR,
-                         results_Vigilance_2s_notlookABR)
+                         results_Vigilance_2s_notlookABR,
+                         results_Vigilance_2s_lookABRcons)
 
 write.csv(results_all, "data_derived/model_global_results_test_vigilance.csv", row.names = FALSE)
 
