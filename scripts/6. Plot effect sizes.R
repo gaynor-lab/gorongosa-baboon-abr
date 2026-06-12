@@ -56,4 +56,4 @@ combined_plot <- (flight_plot + vigilance_plot) +
 
 combined_plot
 
-ggsave("figures/combined_beta_coefficients_avg.png", combined_plot, width = 10, height = 5)
+ggsave("figures/combined_beta_coefficients_global.png", combined_plot, width = 10, height = 5)
