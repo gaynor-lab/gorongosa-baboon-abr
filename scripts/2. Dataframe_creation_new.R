@@ -13,9 +13,6 @@ Final_2021 <- readRDS("data_derived/Final_2021.rds")
 # Bring in bounding box summary
 bbox <- read.csv("data_derived/bounding_box_summary.csv")
 
-# Bring in date/time offsets for correction
-offsets <- read.csv("data/files_requiring_offset.csv")
-
 # Combine years
 Final_2021_2024 <- bind_rows(Final_2021, Final_2024)
 
@@ -54,12 +51,20 @@ Final_2021_2024 <- Final_2021_2024 %>%
   )) %>% 
   mutate(neighbours = group_number - 1)
 
+# Create variable for predator vs control
+Final_2021_2024 <- Final_2021_2024 %>% 
+  mutate(cue_type = case_when(predator_cue == "Control" ~ "Control",
+                              predator_cue %in% c("Leopard", "Lion", "Wild dog", "Cheetah", "Hyena") ~ "Predator"))
+
 # Calculate days of study (after correcting reset ABRs as needed)
 
 # Make month/day columns
 Final_2021_2024 <- Final_2021_2024 %>%
   mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
          day   = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name)))
+
+# Bring in date/time offsets for correction
+offsets <- read.csv("data/files_requiring_offset.csv")
 
 # Join offsets
 Final_2021_2024 <- left_join(Final_2021_2024, offsets, by = "file_name")
@@ -94,13 +99,13 @@ Baboon_vigilance <- Final_2021_2024 %>%
     TRUE ~ "Non_vigilant"
   ))
 
-#exclude videos where baboon fled immediately as they display not proportion of vigilance
+# Exclude videos where baboon fled immediately as they display not proportion of vigilance
 Baboon_vigilance <- Baboon_vigilance %>%
   group_by(file_name) %>%
   filter(first(Behaviour) != "Flight") %>%  # Remove groups where the first row's Behaviour is "Flight"
   ungroup()
 
-#calculate proportion time spent vigilant 
+# Calculate proportion time spent vigilant 
 Baboon_vigilance <- Baboon_vigilance %>%
   group_by(file_name) %>%
   mutate(
@@ -122,26 +127,31 @@ Baboon_vigilance <- Baboon_vigilance %>%
     occluded_frames = sum(behaviour_class == "Occluded", na.rm = TRUE),  # Count Occluded frames
     nonoccluded_frames = total_frames - occluded_frames,
     
-    # Calculate vigilance proportions
+    # Calculate vigilance proportion
     proportion_vigilant = if_else(total_frames == occluded_frames, NA, vigilant_frames / nonoccluded_frames),  # Compute proportion or set NA if occluded frames = total frames
     proportion_look_at_abr = if_else(total_frames == occluded_frames, NA, look_at_abr_frames / nonoccluded_frames),
     proportion_look_at_abr_cons = if_else(total_frames == occluded_frames, NA, look_at_abr_cons_frames / nonoccluded_frames),
     proportion_scanning = if_else(total_frames == occluded_frames, NA, scanning_frames / nonoccluded_frames),
-    proportion_look_not_abr = if_else(total_frames == occluded_frames, NA, look_not_abr_frames / nonoccluded_frames)
+    proportion_look_not_abr = if_else(total_frames == occluded_frames, NA, look_not_abr_frames / nonoccluded_frames),
+    
+    # Transform data for beta distribution using Smithson & Verkuilen transformation
+    mutate(proportion_vigilant_beta = (proportion_vigilant * (n() - 1) + 0.5) / n())
   ) %>%
-  ungroup()
+  ungroup() 
 
-#Dataframe for proportion vigilance model
+# Dataframe for proportion vigilance model
 Baboon_vigilance_by_video <- Baboon_vigilance %>%
-  select(file_name, Habitat, age_sex_class, site, predator_cue, group_number, offspring, year,
+  left_join(bbox, by = "file_name") %>%
+  select(file_name, Habitat, age_sex_class, site, predator_cue, cue_type,
+         group_number, offspring, year, day_number, initial_max_dimension,
          total_frames, nonoccluded_frames, occluded_frames,
-         proportion_vigilant, proportion_look_at_abr, proportion_look_at_abr_cons, proportion_scanning, proportion_look_not_abr) %>%
+         proportion_vigilant, proportion_vigilant_beta) %>%
   unique() %>% 
-  drop_na(proportion_vigilant) #need to drop NAs from proportion vigilant where total_frames = occluded_frames
+  drop_na(proportion_vigilant) #need to drop NAs from proportion vigilant where total_frames = occluded_frames%>%
+  
 
 # Join bounding boxes
-Baboon_vigilance_by_video <- Baboon_vigilance_by_video %>%
-  left_join(bbox, by = "file_name")
+Baboon_vigilance_by_video <- Baboon_vigilance_by_video 
 
 # Remove any videos where the baboon was present for <2 seconds
 Baboon_vigilance_by_video <- Baboon_vigilance_by_video %>% 
@@ -157,15 +167,13 @@ saveRDS(Baboon_vigilance_by_video, "data_derived/Baboon_vigilance_df.rds")
 Baboon_flight_binary <- Final_2021_2024 %>%
   group_by(file_name) %>% 
   mutate(flight_present = if_else(any(str_detect(Behaviour, "Flight")), 1, 0)) %>%
-  ungroup() %>% 
-  select(file_name, Habitat, age_sex_class, site, predator_cue, group_number, offspring, flight_present, year) %>% 
-  unique()
+  ungroup() %>%
+  left_join(bbox, by = "file_name") %>% 
+  select(file_name, flight_present, Habitat, age_sex_class, site, predator_cue, cue_type,
+         group_number, offspring, year, day_number, initial_max_dimension) %>% 
+  unique() 
 
-# Join bounding boxes
-Baboon_flight_binary <- Baboon_flight_binary %>%
-  left_join(bbox, by = "file_name")
-
-#export dataset
+# Export dataset
 saveRDS(Baboon_flight_binary, "data_derived/Baboon_flight_binary_df.rds")
 
 
