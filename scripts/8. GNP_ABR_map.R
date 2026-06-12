@@ -1,6 +1,6 @@
-#Script for creating map of Gorongosa National Park and ABR sites
+# Script for creating study area map 
 
-#load packages
+# Load packages
 library(dplyr)
 library(sf)
 library(ggplot2)
@@ -8,9 +8,10 @@ library(ggspatial)
 library(ggforce)
 library(tidyr)
 
-#Map of ABR sites 
 
-#load shapefiles
+# Map of ABR locations ----------------------------------------------------
+
+# Load shapefiles
 GNP_boundary <- st_read("data/GNP_shp/GNP_Landscapes_New_boundary.shp")
 Lake_urema <- st_read("data/GNP_shp/LakeUrema.shp")
 Roads <- st_read("data/GNP_shp/roads_may2015.shp")
@@ -18,17 +19,15 @@ Africa <- st_read("data/GNP_shp/ne_10m_admin_0_countries.shp") %>%
   filter(REGION_UN == "Africa")
 GNP_boundary_only <- st_read("data/GNP_shp/WDPA_WDOECM_Nov2025_Public_801_shp-polygons.shp")
 
-#load ABR data
+# Load ABR data
 ABR_data <- read.csv("data/ABR_locations.csv") %>% 
   mutate(
-  # replace NA with 0 so pies still render
   X2021 = ifelse(is.na(X2021), 0, X2021),
   X2024 = ifelse(is.na(X2024), 0, X2024),
   alpha_val = ifelse(Habitat == "Open", 0.9, 0.4)  # transparency
 )
 
-
-# Convert ABR locations to sf object 
+# Convert ABR locations to sf object
 ABR_data <- st_as_sf(
   ABR_data,
   coords = c("Long", "Lat"),   
@@ -44,18 +43,19 @@ Roads       <- st_transform(Roads, crs_ref)
 ABR_data <- st_transform(ABR_data, crs_ref)
 GNP_boundary_only <- st_transform(GNP_boundary_only, crs_ref)
 
-#create bounding box
+# Create bounding box
 bbox <- st_bbox(ABR_data)
 
 
-# ---- Convert sf → data frame with coordinates ----
+# Convert sf to data frame with coordinates
 points_df <- ABR_data %>%
   st_coordinates() %>%
   as.data.frame() %>%
   bind_cols(st_drop_geometry(ABR_data)) %>%
-  rename(lon = X, lat = Y)
+  rename(lon = X, lat = Y) %>%
+  mutate(r_scaled = sqrt(total) / max(sqrt(total)) * 800)
 
-# ---- Prepare pie data ----
+# Prepare pie chart data
 pie_df <- points_df %>%
   mutate(
     X2021 = ifelse(is.na(X2021), 0, X2021),
@@ -75,7 +75,7 @@ pie_df <- points_df %>%
   ) %>%
   ungroup()
 
-# ---- Plot ----
+# Plot
 ggplot() +
   
   # Lake
@@ -106,17 +106,33 @@ ggplot() +
     size = 0.3
   ) +
   
+  # add points for legend purposes
+  geom_point(
+    data = points_df,
+    aes(x = lon, y = lat, size = r_scaled),
+    alpha = 0   # invisible on map
+  ) +
+  
+  scale_size_continuous(
+    name = "Detections",
+    breaks = sqrt(c(2, 32, 176)) / max(sqrt(points_df$total)) * 800,
+    labels = c(2, 32, 176),
+    range = c(2, 10),
+    guide = guide_legend(
+      order = 3,
+      override.aes = list(
+        fill = "white",
+        color = "white",
+        alpha = 1
+      )
+    )
+  ) +
+  
   # Zoom extent
   coord_sf(
     xlim = c(bbox["xmin"] - 1000, bbox["xmax"] + 1000),
     ylim = c(bbox["ymin"] - 1000, bbox["ymax"] + 1000),
     expand = FALSE
-  ) +
-  
-  guides(
-    fill = guide_legend(order = 1),      # Habitat
-    alpha = guide_legend(order = 2),     # Year
-    linetype = guide_legend(order = 3)   # Roads
   ) +
   
   # Habitat colors
@@ -136,7 +152,6 @@ ggplot() +
       "2024" = 1
     )
   ) +
-  
   
   # Roads legend
   scale_linetype_manual(
@@ -161,35 +176,31 @@ ggplot() +
   
   # Set legend order
   guides(
-    fill = guide_legend(order = 1),  # Habitat
-    
+    fill = guide_legend(order = 1),
     alpha = guide_legend(
       order = 2,
-      override.aes = list(
-        fill = "black",
-        color = "black"
-      )
+      override.aes = list(fill = "black", color = "black")
     ),
-    
-    linetype = guide_legend(order = 3)  # Roads
+    linetype = guide_legend(order = 4)
   )
 
 ggsave("figures/ABR_map.png", width = 6, height = 4, dpi = 300)
 
-#Map of Goronogosa National Park in Mozambique
 
-#Match projects 
+# Map of Gorongosa National Park in Mozambique ----------------------------
+
+# Match projects 
 Africa_utm <- st_transform(Africa, st_crs(GNP_boundary))
 
-#filter for mozambique
+# Filter for mozambique
 moz <- Africa_utm %>%
   filter(ADMIN == "Mozambique")
 
-#filter for gnp core zone only
+# Filter for GNP core zone only
 GNP_core <- GNP_boundary_only %>%
   filter(DESIG == "Parque Nacional")
 
-#plot
+# Plot
 ggplot() +
   
   # Africa in UTM
@@ -200,7 +211,7 @@ ggplot() +
   
   # Gorongosa National Park
   geom_sf(data = GNP_core, fill = "#556B2F", color = "black") +
-  
+
   # Zoom to GNP
   coord_sf(
     xlim = c(bbox["xmin"] - 1000000, bbox["xmax"] + 1000000),
@@ -216,4 +227,5 @@ ggplot() +
     panel.grid = element_blank()
   )
 
-
+# Manually joined and annotated with Google Slides (including fixing detection legend)
+# https://docs.google.com/presentation/d/1lzlNSKpoXZXEYsodMYE6I1q24MOwJZqBOJQTCsScZfI/edit
