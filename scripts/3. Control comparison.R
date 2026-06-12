@@ -97,17 +97,6 @@ Baboon_flight_df <- baboon_flight_offset %>%
   mutate(day_number = as.numeric(date_corrected - min(date_corrected, na.rm = TRUE)) + 1) %>%
   ungroup()
 
-#change Wild dog name to match in both datasets
-Baboon_flight_df <- Baboon_flight_df %>%
-  mutate(predator_cue = case_when(
-    predator_cue %in% c("WD", "Wild_dog") ~ "Wild dog",
-    TRUE ~ predator_cue  # Keep all other values as they are
-  ))
-
-#fix issue with spacing in predator cues
-Baboon_flight_df <- Baboon_flight_df %>%
-  mutate(predator_cue = str_trim(predator_cue))
-
 # Create variable for predator vs control
 Baboon_flight_df <- Baboon_flight_df %>% 
   mutate(cue_type = case_when(predator_cue == "Control" ~ "Control",

@@ -26,17 +26,6 @@ Baboon_vigilance_df <- Baboon_vigilance_df %>%
     TRUE ~ NA_real_
   ))
 
-#change Wild dog name to match in both datasets
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(predator_cue = case_when(
-    predator_cue %in% c("WD", "Wild_dog") ~ "Wild dog",
-    TRUE ~ predator_cue  # Keep all other values as they are
-  ))
-
-#fix issue with spacing in predator cues
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(predator_cue = str_trim(predator_cue))
-
 #Transform data for beta distribution using Smithson & Verkuilen transformation
 #this is needed because beta distribution requires values to be 0<x<1 but in proportion_vigilance we have exact 0s and 1s
 #this transformation compresses the scale of the data, taking values away from exactly 0 and 1

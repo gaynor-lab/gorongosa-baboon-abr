@@ -109,6 +109,17 @@ Final_2024 <- Final_2024 %>%
     ))
   )
 
+# Ensure wild dog is consistently named
+Final_2024 <- Final_2024 %>%
+  mutate(predator_cue = case_when(
+    predator_cue %in% c("WD", "Wild_dog") ~ "Wild dog",
+    TRUE ~ predator_cue  # Keep all other values as they are
+  ))
+
+# Fix issues with spacing in predator cues
+Final_2024 <- Final_2024 %>%
+  mutate(predator_cue = str_trim(predator_cue))
+
 # Fix typo in Walking_V
 Final_2024 <- Final_2024 %>%
   mutate(Behaviour = ifelse(Behaviour == "Waking_V", "Walking_V", Behaviour))
@@ -209,13 +220,23 @@ Final_2021 <- Final_2021 %>%
   mutate(predator_cue = recode(predator_cue,
                                "Leo[ard" = "Leopard",
                                "Cheeetah" = "Cheetah",
-                               "Control " = "Control",
-                               "WD" = "Wild dog"
+                               "Control " = "Control"
+  ))
+
+# Ensure wild dog is consistently named
+Final_2024 <- Final_2024 %>%
+  mutate(predator_cue = case_when(
+    predator_cue %in% c("WD", "Wild_dog") ~ "Wild dog",
+    TRUE ~ predator_cue  # Keep all other values as they are
   ))
 
 # Rename NA predator cues to No_sound
 Final_2021 <- Final_2021 %>%
   mutate(predator_cue = if_else(is.na(predator_cue), "No_sound", predator_cue))
+
+# Fix issues with spacing in predator cues
+Final_2024 <- Final_2024 %>%
+  mutate(predator_cue = str_trim(predator_cue))
 
 # Save dataframes 
 saveRDS(Final_2021, "data_derived/Final_2021.rds")
