@@ -20,7 +20,7 @@ vigilance_comparison <- glmmTMB(proportion_vigilant_beta ~ cue_type + (1|site),
                                 na.action = na.fail) 
 
 summary(vigilance_comparison)
-# P = 0.0244
+# P = 0.00014
 
 # FLIGHT-----
 
@@ -30,13 +30,16 @@ flight_comparison <- glmmTMB(flight_present ~ cue_type + (1|site),
                              na.action = na.fail)
 
 summary(flight_comparison)
-# P = 0.030
+# P = 0.0185
 
 ggplot(Baboon_vigilance_df, aes(x = cue_type, y = proportion_vigilant_beta)) + 
   geom_boxplot() +
   theme_bw()
 
 # Count up flight frequency across treatments
-count(Baboon_flight_df, cue_type, flight_present)
-13/(113+13) # 10% fled from control
-140/(650+140) # 18% fled from predator
+Baboon_flight_df %>%
+  count(cue_type, flight_present) %>%
+  group_by(cue_type) %>%
+  mutate(prop = n / sum(n)) 
+# 18% fled from predator, 10% fled from control
+
