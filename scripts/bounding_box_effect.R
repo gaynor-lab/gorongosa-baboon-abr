@@ -16,40 +16,6 @@ library(patchwork)
 Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") %>% 
   filter(age_sex_class != "Unknown")
 
-# Remove any videos where the baboon was present for <1 second
-Baboon_vigilance_df <- Baboon_vigilance_df %>% 
-  filter(nonoccluded_frames > 30) 
-
-#Fix typo in file_name 
-Baboon_vigilance_df$file_name <- gsub(
-  "^2024_F07_7260057_Baboon\\.AVI$",
-  "2024_F07_07260057_Baboon.AVI",
-  Baboon_vigilance_df$file_name
-)
-
-#make new column with month and day to test for sound habituation
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
-         day = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name))) %>%
-  mutate(day_number = case_when(
-    month == 6  ~ day,
-    month == 7  ~ 30 + day,
-    month == 8  ~ 61 + day,
-    month == 1  ~ day,   # in case June was labeled as January due to camera reset
-    TRUE ~ NA_real_
-  ))
-
-#change Wild dog name to match in both datasets
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(predator_cue = case_when(
-    predator_cue %in% c("WD", "Wild_dog") ~ "Wild dog",
-    TRUE ~ predator_cue  # Keep all other values as they are
-  ))
-
-#fix issue with spacing in predator cues
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(predator_cue = str_trim(predator_cue))
-
 #Transform data for beta distribution using Smithson & Verkuilen transformation
 #this is needed because beta distribution requires values to be 0<x<1 but in proportion_vigilance we have exact 0s and 1s
 #this transformation compresses the scale of the data, taking values away from exactly 0 and 1
