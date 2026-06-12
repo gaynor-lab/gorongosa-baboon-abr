@@ -224,7 +224,7 @@ Final_2021 <- Final_2021 %>%
   ))
 
 # Ensure wild dog is consistently named
-Final_2024 <- Final_2024 %>%
+Final_2021 <- Final_2021 %>%
   mutate(predator_cue = case_when(
     predator_cue %in% c("WD", "Wild_dog") ~ "Wild dog",
     TRUE ~ predator_cue  # Keep all other values as they are
