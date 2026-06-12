@@ -95,14 +95,18 @@ Final_2024 <- frame_df2 %>%
 colnames(Final_2024)[colnames(Final_2024) == "task_id"] <- "Task_ID"
 colnames(Final_2024)[colnames(Final_2024) == "label"] <- "Behaviour"
 
-# Fix typo in L11 date file names
+# Fix typo in file names
 Final_2024 <- Final_2024 %>%
   mutate(
     file_name = if_else(
-      str_detect(file_name, "L11") & str_detect(file_name, "2924"),
+      str_detect(file_name, "L11"),
       str_replace(file_name, "2924", "2024"),
       file_name
-    )
+    ),
+    file_name = str_replace_all(file_name, c(
+      "^2024_F07_7260057_Baboon\\.AVI$" = "2024_F07_07260057_Baboon.AVI",
+      "^2024_D05_0790076_Baboon\\.AVI$" = "2024_D05_07090076_Baboon.AVI"
+    ))
   )
 
 # Fix typo in Walking_V

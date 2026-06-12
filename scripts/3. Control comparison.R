@@ -15,19 +15,6 @@ offsets <- read.csv("data/files_requiring_offset.csv")
 
 # PROPORTION OF TIME SPENT VIGILANT-----
 
-#Fix typo in file_name 
-Baboon_vigilance_df$file_name <- gsub(
-  "^2024_F07_7260057_Baboon\\.AVI$",
-  "2024_F07_07260057_Baboon.AVI",
-  Baboon_vigilance_df$file_name
-)
-
-Baboon_vigilance_df$file_name <- gsub(
-  "^2024_D05_0790076_Baboon\\.AVI$",
-  "2024_D05_07090076_Baboon.AVI",
-  Baboon_vigilance_df$file_name
-)
-
 #make new column with month and day to test for sound habituation
 Baboon_vigilance_df <- Baboon_vigilance_df %>%
   mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
@@ -81,19 +68,6 @@ Baboon_vigilance_df <- Baboon_vigilance_df %>%
 
 
 # FLIGHT-----
-
-#Fix typo in file_name 
-Baboon_flight_df$file_name <- gsub(
-  "^2024_F07_7260057_Baboon\\.AVI$",
-  "2024_F07_07260057_Baboon.AVI",
-  Baboon_flight_df$file_name
-)
-
-Baboon_flight_df$file_name <- gsub(
-  "^2024_D05_0790076_Baboon\\.AVI$",
-  "2024_D05_07090076_Baboon.AVI",
-  Baboon_flight_df$file_name
-)
 
 #make new column with month and day to test for sound habituation
 Baboon_flight_df <- Baboon_flight_df %>%

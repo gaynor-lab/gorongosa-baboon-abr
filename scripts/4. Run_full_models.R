@@ -18,13 +18,6 @@ Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") %>%
 Baboon_vigilance_df <- Baboon_vigilance_df %>% 
   filter(nonoccluded_frames > 60) 
 
-#Fix typo in file_name 
-Baboon_vigilance_df$file_name <- gsub(
-  "^2024_F07_7260057_Baboon\\.AVI$",
-  "2024_F07_07260057_Baboon.AVI",
-  Baboon_vigilance_df$file_name
-)
-
 #make new column with month and day to test for sound habituation
 Baboon_vigilance_df <- Baboon_vigilance_df %>%
   mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
@@ -171,13 +164,6 @@ results_vigilance <- coefs_vigilance %>%
 # Import data
 Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds") %>% 
   filter(age_sex_class != "Unknown")
-
-#Fix typo in file_name 
-Baboon_flight_df$file_name <- gsub(
-  "^2024_F07_7260057_Baboon\\.AVI$",
-  "2024_F07_07260057_Baboon.AVI",
-  Baboon_flight_df$file_name
-)
 
 #make new columun with month and day to test for sound habituation
 Baboon_flight_df <- Baboon_flight_df %>%
