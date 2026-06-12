@@ -3,15 +3,17 @@
 library(dplyr)
 library(stringr)
 library(glmmTMB)
-
+library(lubridate)
+library(ggplot2)
 
 # Import and prep data ----------------------------------------------------
 
 #Import derived dataframes
 Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds")
 Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds")
+offsets <- read.csv("data/files_requiring_offset.csv")
 
-#PROPORTION OF TIME SPENT VIGILANT
+# PROPORTION OF TIME SPENT VIGILANT-----
 
 #Fix typo in file_name 
 Baboon_vigilance_df$file_name <- gsub(
@@ -20,17 +22,40 @@ Baboon_vigilance_df$file_name <- gsub(
   Baboon_vigilance_df$file_name
 )
 
+Baboon_vigilance_df$file_name <- gsub(
+  "^2024_D05_0790076_Baboon\\.AVI$",
+  "2024_D05_07090076_Baboon.AVI",
+  Baboon_vigilance_df$file_name
+)
+
 #make new column with month and day to test for sound habituation
 Baboon_vigilance_df <- Baboon_vigilance_df %>%
   mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
-         day = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name))) %>%
-  mutate(day_number = case_when(
-    month == 6  ~ day,
-    month == 7  ~ 30 + day,
-    month == 8  ~ 61 + day,
-    month == 1  ~ day,   # in case June was labeled as January due to camera reset
-    TRUE ~ NA_real_
-  ))
+         day   = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name)))
+
+# Correction of month and day
+
+# Join offsets
+
+baboon_vigilance_offset <- left_join(Baboon_vigilance_df, offsets, by = "file_name")
+
+# Convert offset strings to numeric, and apply correction
+baboon_vigilance_offset <- baboon_vigilance_offset %>%
+  mutate(
+    month_offset_num = as.numeric(month_offset),
+    day_offset_num   = as.numeric(day_offset),
+    raw_date = make_date(year = year, month = month, day = day),
+    date_corrected = case_when(
+      is.na(month_offset_num) & is.na(day_offset_num) ~ raw_date,
+      TRUE ~ raw_date %m+% months(coalesce(month_offset_num, 0)) + days(coalesce(day_offset_num, 0))
+    )
+  )
+
+# Days since first deployment, calculated separately per year
+Baboon_vigilance_df <- baboon_vigilance_offset %>%
+  group_by(year) %>%
+  mutate(day_number = as.numeric(date_corrected - min(date_corrected, na.rm = TRUE)) + 1) %>%
+  ungroup()
 
 #change Wild dog name to match in both datasets
 Baboon_vigilance_df <- Baboon_vigilance_df %>%
@@ -55,6 +80,8 @@ Baboon_vigilance_df <- Baboon_vigilance_df %>%
                               predator_cue %in% c("Leopard", "Lion", "Wild dog", "Cheetah", "Hyena") ~ "Predator"))
 
 
+# FLIGHT-----
+
 #Fix typo in file_name 
 Baboon_flight_df$file_name <- gsub(
   "^2024_F07_7260057_Baboon\\.AVI$",
@@ -62,17 +89,39 @@ Baboon_flight_df$file_name <- gsub(
   Baboon_flight_df$file_name
 )
 
-#make new columun with month and day to test for sound habituation
+Baboon_flight_df$file_name <- gsub(
+  "^2024_D05_0790076_Baboon\\.AVI$",
+  "2024_D05_07090076_Baboon.AVI",
+  Baboon_flight_df$file_name
+)
+
+#make new column with month and day to test for sound habituation
 Baboon_flight_df <- Baboon_flight_df %>%
   mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
-         day = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name))) %>%
-  mutate(day_number = case_when(
-    month == 6  ~ day,
-    month == 7  ~ 30 + day,
-    month == 8  ~ 61 + day,
-    month == 1  ~ day,   # in case June was labeled as January due to camera reset
-    TRUE ~ NA_real_
-  ))
+         day   = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name)))
+
+# Correction of month and day
+
+# Join offsets
+baboon_flight_offset <- left_join(Baboon_flight_df, offsets, by = "file_name")
+
+# Convert offset strings to numeric, and apply correction
+baboon_flight_offset <- baboon_flight_offset %>%
+  mutate(
+    month_offset_num = as.numeric(month_offset),
+    day_offset_num   = as.numeric(day_offset),
+    raw_date = make_date(year = year, month = month, day = day),
+    date_corrected = case_when(
+      is.na(month_offset_num) & is.na(day_offset_num) ~ raw_date,
+      TRUE ~ raw_date %m+% months(coalesce(month_offset_num, 0)) + days(coalesce(day_offset_num, 0))
+    )
+  )
+
+# Days since first deployment, calculated separately per year
+Baboon_flight_df <- baboon_flight_offset %>%
+  group_by(year) %>%
+  mutate(day_number = as.numeric(date_corrected - min(date_corrected, na.rm = TRUE)) + 1) %>%
+  ungroup()
 
 #change Wild dog name to match in both datasets
 Baboon_flight_df <- Baboon_flight_df %>%
@@ -81,10 +130,9 @@ Baboon_flight_df <- Baboon_flight_df %>%
     TRUE ~ predator_cue  # Keep all other values as they are
   ))
 
-#fix spacing issue
+#fix issue with spacing in predator cues
 Baboon_flight_df <- Baboon_flight_df %>%
   mutate(predator_cue = str_trim(predator_cue))
-
 
 # Create variable for predator vs control
 Baboon_flight_df <- Baboon_flight_df %>% 
@@ -92,26 +140,23 @@ Baboon_flight_df <- Baboon_flight_df %>%
                               predator_cue %in% c("Leopard", "Lion", "Wild dog", "Cheetah", "Hyena") ~ "Predator"))
 
 
-
 # Comparison --------------------------------------------------------------
 
 vigilance_comparison <- glmmTMB(proportion_vigilant_beta ~ cue_type + (1|site),
-                                       data = Baboon_vigilance_df,
-                                       family = beta_family(),
-                                       na.action = na.fail) 
+                                data = Baboon_vigilance_df,
+                                family = beta_family(),
+                                na.action = na.fail) 
 
 summary(vigilance_comparison)
-# P = 0.021
+# P = 0.0244
 
 flight_comparison <- glmmTMB(flight_present ~ cue_type + (1|site),
-                                       data = Baboon_flight_df,
-                                       family = binomial(),
-                                       na.action = na.fail)
+                             data = Baboon_flight_df,
+                             family = binomial(),
+                             na.action = na.fail)
 
 summary(flight_comparison)
 # P = 0.030
-
-library(ggplot2)
 
 ggplot(Baboon_vigilance_df, aes(x = cue_type, y = proportion_vigilant_beta)) + 
   geom_boxplot() +
