@@ -1,27 +1,28 @@
-#Joining dataframes (CVAT annotations and second watch csv) 
+# 1. Joining dataframes (CVAT annotations and metadata)
 
-#load packages
+# Load packages
 library(xml2)
 library(dplyr)
 library(ggplot2)
 library(stringr)
 library(tidyverse)
 
-#Import second watch metadata in CSV format 
+# Import metadata in CSV format 
 B_21_second <- read.csv("data/second watch 2026 correction/2021_baboon_second.csv")
 
 B_24_second <- read.csv("data/second watch 2026 correction/2024_baboon_second.csv")
 
-#make file name column in second watch data to join with file_name from CVAT annotations
+# Make file name column in second watch data to join with file_name from CVAT annotations
 B_21_second<- B_21_second %>%
   mutate(file_name = paste(year, site, video_name, sep = "_"))
 
 B_24_second<- B_24_second %>%
   mutate(file_name = paste(year, site, video_name, sep = "_"))
 
-#Dataframe join for 2024 data
 
-#Convert XML to dataframe
+# Join for 2024 -----------------------------------------------------------
+
+# Convert XML to dataframe
 xml_file_2024 <- read_xml("data/2024_baboon_CVAT.xml")
 
 # Extract all tasks (task = 1 video)
@@ -76,7 +77,7 @@ frame_df <- frame_df %>%
 frame_df2 <- left_join(frame_df, task_df)
 colnames(frame_df2)[colnames(frame_df2) == "task_name"] <- "file_name"
 
-#fix typo in L11 date file names
+# Fix typo in L11 date file names
 frame_df2 <- frame_df2 %>%
   mutate(
     file_name = if_else(
@@ -90,13 +91,11 @@ frame_df2 <- frame_df2 %>%
 Final_2024 <- frame_df2 %>%
   left_join(B_24_second, by = "file_name")
 
-#Clean dataset for unecessary columns and rename 
-
-#rename columns
+# Rename columns
 colnames(Final_2024)[colnames(Final_2024) == "task_id"] <- "Task_ID"
 colnames(Final_2024)[colnames(Final_2024) == "label"] <- "Behaviour"
 
-#fix typo in L11 date file names
+# Fix typo in L11 date file names
 Final_2024 <- Final_2024 %>%
   mutate(
     file_name = if_else(
@@ -106,13 +105,14 @@ Final_2024 <- Final_2024 %>%
     )
   )
 
-#fix typo in Walking_V
+# Fix typo in Walking_V
 Final_2024 <- Final_2024 %>%
   mutate(Behaviour = ifelse(Behaviour == "Waking_V", "Walking_V", Behaviour))
 
-#Dataframe join for 2021
 
-#Convert XML to dataframe
+# Join for 2021 -----------------------------------------------------------
+
+# Convert XML to dataframe
 xml_file_2021 <- read_xml("data/2021_baboon_CVAT.xml")
 
 # Extract all tasks (task = 1 video)
@@ -170,7 +170,6 @@ frame_df2 <- frame_df2 %>%
     "2021_D05_08120024_Baboon_AVI" = "2021_D05_08120024_Baboon_.AVI"
   ))
 
-
 # Join with file name
 frame_df2 <- left_join(frame_df, task_df)
 colnames(frame_df2)[colnames(frame_df2) == "task_name"] <- "file_name"
@@ -179,14 +178,14 @@ colnames(frame_df2)[colnames(frame_df2) == "task_name"] <- "file_name"
 merged_clean_2021 <- frame_df2 %>%
   left_join(B_21_second, by = "file_name")
 
-#rename columns
+# Rename columns
 colnames(merged_clean_2021)[colnames(merged_clean_2021) == "task_id"] <- "Task_ID"
 colnames(merged_clean_2021)[colnames(merged_clean_2021) == "label"] <- "Behaviour"
 colnames(merged_clean_2021)[colnames(merged_clean_2021) == "Sound.quality...Good..Poor..None"] <- "Sound_quality"
 colnames(merged_clean_2021)[colnames(merged_clean_2021) == "Sound.delay..s."] <- "Sound_delay_s"
 colnames(merged_clean_2021)[colnames(merged_clean_2021) == "Other.species.present..list.w.commas."] <- "Other_species_present"
 
-#rename behaviour labels
+# Rename behaviour labels
 Final_2021 <- merged_clean_2021 %>%
   mutate(Behaviour = case_when(
     Behaviour == "Walking (w/o vigilance)" ~ "Walking_NV",
@@ -201,26 +200,19 @@ Final_2021 <- merged_clean_2021 %>%
     TRUE ~ Behaviour  # Keep all other values unchanged
   ))
 
-#Fix leopard typo
+# Fix typos
 Final_2021 <- Final_2021 %>%
-  mutate(predator_cue = str_replace(predator_cue, "Leo\\[ard", "Leopard"))
+  mutate(predator_cue = recode(predator_cue,
+                               "Leo[ard" = "Leopard",
+                               "Cheeetah" = "Cheetah",
+                               "Control " = "Control",
+                               "WD" = "Wild dog"
+  ))
 
-#Fix cheetah typo
-Final_2021 <- Final_2021 %>%
-  mutate(predator_cue = str_replace(predator_cue, "Cheeetah", "Cheetah"))
-
-#Fix control typo
-Final_2021 <- Final_2021 %>%
-  mutate(predator_cue = str_replace(predator_cue, "Control ", "Control"))
-
-#Rename WD to Wild_dog
-Final_2021 <- Final_2021 %>%
-  mutate(predator_cue = str_replace(predator_cue, "WD", "Wild dog"))
-
-#Rename NA predator cues to No_sound
+# Rename NA predator cues to No_sound
 Final_2021 <- Final_2021 %>%
   mutate(predator_cue = if_else(is.na(predator_cue), "No_sound", predator_cue))
 
-#Save dataframes 
+# Save dataframes 
 saveRDS(Final_2021, "data_derived/Final_2021.rds")
 saveRDS(Final_2024, "data_derived/Final_2024.rds")
