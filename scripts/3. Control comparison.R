@@ -15,46 +15,6 @@ offsets <- read.csv("data/files_requiring_offset.csv")
 
 # PROPORTION OF TIME SPENT VIGILANT-----
 
-#make new column with month and day to test for sound habituation
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
-         day   = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name)))
-
-# Correction of month and day
-
-# Join offsets
-
-baboon_vigilance_offset <- left_join(Baboon_vigilance_df, offsets, by = "file_name")
-
-# Convert offset strings to numeric, and apply correction
-baboon_vigilance_offset <- baboon_vigilance_offset %>%
-  mutate(
-    month_offset_num = as.numeric(month_offset),
-    day_offset_num   = as.numeric(day_offset),
-    raw_date = make_date(year = year, month = month, day = day),
-    date_corrected = case_when(
-      is.na(month_offset_num) & is.na(day_offset_num) ~ raw_date,
-      TRUE ~ raw_date %m+% months(coalesce(month_offset_num, 0)) + days(coalesce(day_offset_num, 0))
-    )
-  )
-
-# Days since first deployment, calculated separately per year
-Baboon_vigilance_df <- baboon_vigilance_offset %>%
-  group_by(year) %>%
-  mutate(day_number = as.numeric(date_corrected - min(date_corrected, na.rm = TRUE)) + 1) %>%
-  ungroup()
-
-#change Wild dog name to match in both datasets
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(predator_cue = case_when(
-    predator_cue %in% c("WD", "Wild_dog") ~ "Wild dog",
-    TRUE ~ predator_cue  # Keep all other values as they are
-  ))
-
-#fix issue with spacing in predator cues
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(predator_cue = str_trim(predator_cue))
-
 #Transform data for beta distribution using Smithson & Verkuilen transformation
 #this is needed because beta distribution requires values to be 0<x<1 but in proportion_vigilance we have exact 0s and 1s
 #this transformation compresses the scale of the data, taking values away from exactly 0 and 1
@@ -75,27 +35,6 @@ Baboon_flight_df <- Baboon_flight_df %>%
          day   = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name)))
 
 # Correction of month and day
-
-# Join offsets
-baboon_flight_offset <- left_join(Baboon_flight_df, offsets, by = "file_name")
-
-# Convert offset strings to numeric, and apply correction
-baboon_flight_offset <- baboon_flight_offset %>%
-  mutate(
-    month_offset_num = as.numeric(month_offset),
-    day_offset_num   = as.numeric(day_offset),
-    raw_date = make_date(year = year, month = month, day = day),
-    date_corrected = case_when(
-      is.na(month_offset_num) & is.na(day_offset_num) ~ raw_date,
-      TRUE ~ raw_date %m+% months(coalesce(month_offset_num, 0)) + days(coalesce(day_offset_num, 0))
-    )
-  )
-
-# Days since first deployment, calculated separately per year
-Baboon_flight_df <- baboon_flight_offset %>%
-  group_by(year) %>%
-  mutate(day_number = as.numeric(date_corrected - min(date_corrected, na.rm = TRUE)) + 1) %>%
-  ungroup()
 
 # Create variable for predator vs control
 Baboon_flight_df <- Baboon_flight_df %>% 

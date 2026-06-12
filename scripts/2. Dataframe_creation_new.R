@@ -54,6 +54,34 @@ Final_2021_2024 <- Final_2021_2024 %>%
   )) %>% 
   mutate(neighbours = group_number - 1)
 
+# Calculate days of study (after correcting reset ABRs as needed)
+
+# Make month/day columns
+Final_2021_2024 <- Final_2021_2024 %>%
+  mutate(month = as.numeric(sub(".*?_(\\d{2}).*", "\\1", file_name)),
+         day   = as.numeric(sub(".*?_(\\d{2})(\\d{2}).*", "\\2", file_name)))
+
+# Join offsets
+Final_2021_2024 <- left_join(Final_2021_2024, offsets, by = "file_name")
+
+# Convert offset strings to numeric, and apply correction
+Final_2021_2024 <- Final_2021_2024 %>%
+  mutate(
+    month_offset_num = as.numeric(month_offset),
+    day_offset_num   = as.numeric(day_offset),
+    raw_date = make_date(year = year, month = month, day = day),
+    date_corrected = case_when(
+      is.na(month_offset_num) & is.na(day_offset_num) ~ raw_date,
+      TRUE ~ raw_date %m+% months(coalesce(month_offset_num, 0)) + days(coalesce(day_offset_num, 0))
+    )
+  )
+
+# Days since first deployment, calculated separately per year
+Final_2021_2024 <- Final_2021_2024 %>%
+  group_by(year) %>%
+  mutate(day_number = as.numeric(date_corrected - min(date_corrected, na.rm = TRUE)) + 1) %>%
+  ungroup()
+
 
 # DATAFRAME FOR VIGILANCE ANALYSIS ----------------------------------------
 
