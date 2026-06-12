@@ -80,6 +80,10 @@ Baboon_vigilance <- Baboon_vigilance %>%
                              Behaviour == "Startling",
                              Behaviour == "Stand_stare",
                              na.rm = TRUE),
+    look_at_abr_cons_frames = sum(Behaviour == "Staring", # Count frames looking at ABR
+                             Behaviour == "Startling",
+                             Behaviour == "Stand_stare",
+                             na.rm = TRUE),
     scanning_frames = sum(Behaviour == "Scanning", na.rm = TRUE),  # Count Scanning frames
     look_not_abr_frames = sum(Behaviour == "Scanning", 
                               Behaviour == "Walking_NV",
@@ -90,6 +94,7 @@ Baboon_vigilance <- Baboon_vigilance %>%
     # Calculate vigilance proportions
     proportion_vigilant = if_else(total_frames == occluded_frames, NA, vigilant_frames / nonoccluded_frames),  # Compute proportion or set NA if occluded frames = total frames
     proportion_look_at_abr = if_else(total_frames == occluded_frames, NA, look_at_abr_frames / nonoccluded_frames),
+    proportion_look_at_abr_cons = if_else(total_frames == occluded_frames, NA, look_at_abr_cons_frames / nonoccluded_frames),
     proportion_scanning = if_else(total_frames == occluded_frames, NA, scanning_frames / nonoccluded_frames),
     proportion_look_not_abr = if_else(total_frames == occluded_frames, NA, look_not_abr_frames / nonoccluded_frames)
   ) %>%
@@ -99,7 +104,7 @@ Baboon_vigilance <- Baboon_vigilance %>%
 Baboon_vigilance_by_video <- Baboon_vigilance %>%
   select(file_name, Habitat, age_sex_class, site, predator_cue, group_number, offspring, year,
          total_frames, nonoccluded_frames, occluded_frames,
-         proportion_vigilant, proportion_look_at_abr, proportion_scanning, proportion_look_not_abr) %>%
+         proportion_vigilant, proportion_look_at_abr, proportion_look_at_abr_cons, proportion_scanning, proportion_look_not_abr) %>%
   unique() %>% 
   drop_na(proportion_vigilant) #need to drop NAs from proportion vigilant where total_frames = occluded_frames
 
