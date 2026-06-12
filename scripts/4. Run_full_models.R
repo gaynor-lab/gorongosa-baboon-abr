@@ -14,9 +14,9 @@ library(stringr)
 Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") %>% 
   filter(age_sex_class != "Unknown")
 
-# Remove any videos where the baboon was present for <1 second
+# Remove any videos where the baboon was present for <2 seconds
 Baboon_vigilance_df <- Baboon_vigilance_df %>% 
-  filter(nonoccluded_frames > 30) 
+  filter(nonoccluded_frames > 60) 
 
 #Fix typo in file_name 
 Baboon_vigilance_df$file_name <- gsub(
@@ -123,14 +123,14 @@ results_vigilance <- coefs_vigilance %>%
       grepl("^day_number", term) ~ "Day of study",
       grepl("^year", term) ~ "Year",
       grepl("^Habitat", term) ~ "Habitat",
-      grepl("^group_number", term) ~ "Group size",
+      grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
       grepl("^predator_cue", term) ~ "Cue"
     ),
     
     Level = case_when(
       term == "day_number" ~ "Day of study",
-      term == "group_number" ~ "Group size",
+      term == "group_number" ~ "Number of neighbors",
       
       term == "year2024" ~ "Year = 2024",
       
@@ -169,7 +169,8 @@ results_vigilance <- coefs_vigilance %>%
 # Flight models -----------------------------------------------------------
 
 # Import data
-Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds")
+Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds") %>% 
+  filter(age_sex_class != "Unknown")
 
 #Fix typo in file_name 
 Baboon_flight_df$file_name <- gsub(
@@ -271,14 +272,14 @@ results_flight <- coefs_flight %>%
       grepl("^day_number", term) ~ "Day of study",
       grepl("^year", term) ~ "Year",
       grepl("^Habitat", term) ~ "Habitat",
-      grepl("^group_number", term) ~ "Group size",
+      grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
       grepl("^predator_cue", term) ~ "Cue"
     ),
     
     Level = case_when(
       term == "day_number" ~ "Day of study",
-      term == "group_number" ~ "Group size",
+      term == "group_number" ~ "Number of neighbors",
       
       term == "year2024" ~ "Year = 2024",
       
