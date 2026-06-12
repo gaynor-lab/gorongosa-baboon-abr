@@ -1,40 +1,28 @@
 #Script for proportion vigilance and flight frequency (global models)
 
-#load packages
+# Load packages
 library(glmmTMB)
-library(dplyr)
 library(MuMIn)
-library(performance)
+library(dplyr)
 library(stringr)
 
 
 # Vigilance models --------------------------------------------------------
 
 # Import data
-Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") %>% 
-  filter(age_sex_class != "Unknown")
+Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") 
 
-#Ensure reference levels are consisent across all models
-
-#set 2021 as reference level
+# Define reference levels
 Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(year = factor(year, levels = c(2021, 2024)))
+  mutate(year = factor(year, levels = c(2021, 2024)),
+         predator_cue = relevel(factor(predator_cue), ref = "Cheetah"),
+         age_sex_class = relevel(factor(age_sex_class), ref = "Female_Adult_no_offspring"),
+         Habitat = relevel(factor(Habitat), ref = "Open"))
 
-#set cheetah as reference level for predator cue
-Baboon_vigilance_df <- Baboon_vigilance_df %>%
-  mutate(predator_cue = relevel(factor(predator_cue), ref = "Cheetah"))
-
-#set female adult as reference level
-Baboon_vigilance_df$age_sex_class <- factor(Baboon_vigilance_df$age_sex_class)
-Baboon_vigilance_df$age_sex_class <- relevel(Baboon_vigilance_df$age_sex_class, ref = "Female_Adult_no_offspring")
-
-#set open habitat as reference level
-Baboon_vigilance_df$Habitat <- factor(Baboon_vigilance_df$Habitat)
-Baboon_vigilance_df$Habitat <- relevel(Baboon_vigilance_df$Habitat, ref = "Open")
-
-#Filter to only predator cues
+#Filter to only predator cues and drop NA
 Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df %>% 
-  dplyr::filter(predator_cue != "Control")
+  dplyr::filter(predator_cue != "Control") %>% 
+  filter(age_sex_class != "Unknown")
 
 # Scale numerical variables
 Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df_nocontrol %>%
@@ -89,31 +77,15 @@ results_vigilance <- coefs_vigilance %>%
     Level = case_when(
       term == "day_number" ~ "Day of study",
       term == "group_number" ~ "Number of neighbors",
-      
       term == "year2024" ~ "Year = 2024",
-      
       term == "HabitatClosed" ~ "Habitat = Closed",
-      
-      term == "age_sex_classFemale_Adult_with_offspring" ~
-        "Class = Female adult w offspring",
-      
-      term == "age_sex_classJuvenile" ~
-        "Class = Juvenile",
-      
-      term == "age_sex_classMale_Adult" ~
-        "Class = Male adult",
-      
-      term == "predator_cueHyena" ~
-        "Species = Hyena",
-      
-      term == "predator_cueLeopard" ~
-        "Species = Leopard",
-      
-      term == "predator_cueLion" ~
-        "Species = Lion",
-      
-      term == "predator_cueWild dog" ~
-        "Species = Wild dog"
+      term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
+      term == "age_sex_classJuvenile" ~ "Class = Juvenile",
+      term == "age_sex_classMale_Adult" ~ "Class = Male adult",
+      term == "predator_cueHyena" ~ "Species = Hyena",
+      term == "predator_cueLeopard" ~ "Species = Leopard",
+      term == "predator_cueLion" ~ "Species = Lion",
+      term == "predator_cueWild dog" ~ "Species = Wild dog"
     ),
     
     Mean = Estimate,
@@ -127,41 +99,27 @@ results_vigilance <- coefs_vigilance %>%
 # Flight models -----------------------------------------------------------
 
 # Import data
-Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds") %>% 
-  filter(age_sex_class != "Unknown")
+Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds") 
 
-#Ensure all reference levels are consistent across models
-
-#set control as reference level for Predator.cue
+# Define reference levels
 Baboon_flight_df <- Baboon_flight_df %>%
-  mutate(predator_cue = relevel(factor(predator_cue), ref = "Cheetah"))
+  mutate(year = factor(year, levels = c(2021, 2024)),
+         predator_cue = relevel(factor(predator_cue), ref = "Cheetah"),
+         age_sex_class = relevel(factor(age_sex_class), ref = "Female_Adult_no_offspring"),
+         Habitat = relevel(factor(Habitat), ref = "Open"))
 
-#set 2021 as reference level
-Baboon_flight_df <- Baboon_flight_df %>%
-  mutate(year = factor(year, levels = c(2021, 2024)))
-
-#set female adult as reference level
-Baboon_flight_df$age_sex_class <- factor(Baboon_flight_df$age_sex_class)
-Baboon_flight_df$age_sex_class <- relevel(Baboon_flight_df$age_sex_class, ref = "Female_Adult_no_offspring")
-
-#set open habitat as reference level
-Baboon_flight_df$Habitat <- factor(Baboon_flight_df$Habitat)
-Baboon_flight_df$Habitat <- relevel(Baboon_flight_df$Habitat, ref = "Open")
-
-#Filter to only predator cues
+# Filter to only predator cues and drop NA
 Baboon_flight_df_nocontrol <- Baboon_flight_df %>% 
-  dplyr::filter(predator_cue != "Control")
-
-# Drop NA
-Baboon_flight_df_nocontrol <- Baboon_flight_df_nocontrol %>% 
-  tidyr::drop_na()
+  dplyr::filter(predator_cue != "Control") %>% 
+  tidyr::drop_na() %>% 
+  filter(age_sex_class != "Unknown")
 
 # Scale numerical variables
 Baboon_flight_df_nocontrol <- Baboon_flight_df_nocontrol %>%
   mutate(group_number = scale(group_number),
          day_number = scale(day_number))
 
-#Global GLMM with binomial distribution
+# Global GLMM with binomial distribution
 Flight_global_model <- glmmTMB(flight_present ~ predator_cue + year + Habitat + age_sex_class + group_number + day_number + (1|site),
                                        data = Baboon_flight_df_nocontrol,
                                        family = binomial(),
@@ -208,31 +166,15 @@ results_flight <- coefs_flight %>%
     Level = case_when(
       term == "day_number" ~ "Day of study",
       term == "group_number" ~ "Number of neighbors",
-      
       term == "year2024" ~ "Year = 2024",
-      
       term == "HabitatClosed" ~ "Habitat = Closed",
-      
-      term == "age_sex_classFemale_Adult_with_offspring" ~
-        "Class = Female adult w offspring",
-      
-      term == "age_sex_classJuvenile" ~
-        "Class = Juvenile",
-      
-      term == "age_sex_classMale_Adult" ~
-        "Class = Male adult",
-      
-      term == "predator_cueHyena" ~
-        "Species = Hyena",
-      
-      term == "predator_cueLeopard" ~
-        "Species = Leopard",
-      
-      term == "predator_cueLion" ~
-        "Species = Lion",
-      
-      term == "predator_cueWild dog" ~
-        "Species = Wild dog"
+      term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
+      term == "age_sex_classJuvenile" ~ "Class = Juvenile",
+      term == "age_sex_classMale_Adult" ~ "Class = Male adult",
+      term == "predator_cueHyena" ~ "Species = Hyena",
+      term == "predator_cueLeopard" ~ "Species = Leopard",
+      term == "predator_cueLion" ~ "Species = Lion",
+      term == "predator_cueWild dog" ~ "Species = Wild dog"
     ),
     
     Mean = Estimate,
