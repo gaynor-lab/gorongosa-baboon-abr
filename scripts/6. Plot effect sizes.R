@@ -2,7 +2,8 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 
-model_output <- read.csv("data_derived/model_global_results.csv")
+model_output <- read.csv("data_derived/model_global_results.csv") %>% 
+  filter(Level != "Intercept")
 
 # Flight
 flight_plot <- model_output %>% 
@@ -10,7 +11,7 @@ flight_plot <- model_output %>%
   ggplot(aes(x = Level, y = Mean, col = Covariate)) + 
   geom_hline(aes(yintercept = 0), linetype="dashed", size = 0.5, color = "darkgrey") +
   geom_errorbar(aes(ymin = LCI, ymax = UCI), width=0) +
-  geom_point() +
+  geom_point(size = 3) +
   theme_minimal() +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_text(size = 12),
@@ -18,7 +19,8 @@ flight_plot <- model_output %>%
         strip.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.background = element_blank(),
-        legend.position = "none") +
+        legend.position = "none",
+        plot.title = element_text(face = "bold")) +
   ylim(c(-1.25,1.75)) +
   scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
   coord_flip() + # switch x and y coordinates
@@ -32,7 +34,8 @@ vigilance_plot <- model_output %>%
   ggplot(aes(x = Level, y = Mean, col = Covariate)) + 
   geom_hline(aes(yintercept = 0), linetype="dashed", size = 0.5, color = "darkgrey") +
   geom_errorbar(aes(ymin = LCI, ymax = UCI), width=0, position = position_dodge(width = 1), alpha=.75) +
-  geom_point(position = position_dodge(width = 1)) +
+  geom_point(position = position_dodge(width = 1),
+             size = 3) +
   theme_minimal() +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_text(size = 12),
@@ -40,7 +43,8 @@ vigilance_plot <- model_output %>%
         strip.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.background = element_blank(),
-        legend.position = "none") +
+        legend.position = "none",
+        plot.title = element_text(face = "bold")) +
   scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
   coord_flip() + # switch x and y coordinates
   #ylim(c(-0.5,1.1)) +
@@ -57,3 +61,4 @@ combined_plot <- (flight_plot + vigilance_plot) +
 combined_plot
 
 ggsave("figures/combined_beta_coefficients_global.png", combined_plot, width = 10, height = 5)
+ggsave("figures/publication/Figure3.png", combined_plot, width = 10, height = 5)
