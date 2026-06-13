@@ -4,6 +4,7 @@
 library(glmmTMB)
 library(MuMIn)
 library(dplyr)
+library(performance)
 library(stringr)
 
 
@@ -71,7 +72,8 @@ results_vigilance <- coefs_vigilance %>%
       grepl("^Habitat", term) ~ "Habitat",
       grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
-      grepl("^predator_cue", term) ~ "Cue"
+      grepl("^predator_cue", term) ~ "Cue",
+      grepl("^(Intercept)", term) ~ "Intercept"
     ),
     
     Level = case_when(
@@ -85,7 +87,8 @@ results_vigilance <- coefs_vigilance %>%
       term == "predator_cueHyena" ~ "Species = Hyena",
       term == "predator_cueLeopard" ~ "Species = Leopard",
       term == "predator_cueLion" ~ "Species = Lion",
-      term == "predator_cueWild dog" ~ "Species = Wild dog"
+      term == "predator_cueWild dog" ~ "Species = Wild dog",
+      term == "(Intercept)" ~ "Intercept"
     ),
     
     Mean = Estimate,
@@ -160,7 +163,8 @@ results_flight <- coefs_flight %>%
       grepl("^Habitat", term) ~ "Habitat",
       grepl("^group_number", term) ~ "Number of neighbors",
       grepl("^age_sex_class", term) ~ "Age-sex class",
-      grepl("^predator_cue", term) ~ "Cue"
+      grepl("^predator_cue", term) ~ "Cue",
+      grepl("^(Intercept)", term) ~ "Intercept"
     ),
     
     Level = case_when(
@@ -168,13 +172,14 @@ results_flight <- coefs_flight %>%
       term == "group_number" ~ "Number of neighbors",
       term == "year2024" ~ "Year = 2024",
       term == "HabitatClosed" ~ "Habitat = Closed",
-      term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Female adult w offspring",
+      term == "age_sex_classFemale_Adult_with_offspring" ~ "Class = Adult F (w/ offspring)",
       term == "age_sex_classJuvenile" ~ "Class = Juvenile",
-      term == "age_sex_classMale_Adult" ~ "Class = Male adult",
+      term == "age_sex_classMale_Adult" ~ "Class = Adult M",
       term == "predator_cueHyena" ~ "Species = Hyena",
       term == "predator_cueLeopard" ~ "Species = Leopard",
       term == "predator_cueLion" ~ "Species = Lion",
-      term == "predator_cueWild dog" ~ "Species = Wild dog"
+      term == "predator_cueWild dog" ~ "Species = Wild dog",
+      term == "(Intercept)" ~ "Intercept"
     ),
     
     Mean = Estimate,
