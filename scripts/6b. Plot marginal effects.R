@@ -53,7 +53,7 @@ vig_day$x   <- backtransform(vig_day$x, vig_day_scale)
 vig_age <- vig_age %>%
   mutate(x = recode(x,
                     "Female_Adult_no_offspring"   = "Adult F",
-                    "Female_Adult_with_offspring" = "Adult F w/ offspring",
+                    "Female_Adult_with_offspring" = "Adult F \nw/ offspring",
                     "Juvenile"                    = "Juvenile",
                     "Male_Adult"                  = "Adult M"
   ))
@@ -135,6 +135,12 @@ p6 <- ggplot(vig_day, aes(x = x, y = predicted)) +
 # Combine 2×3
 p_vig <- (p1 | p2 ) / (p3 | p4) / (p5 | p6)
 
+
+p_vig
+
+ggsave("figures/vigilance-marginal-effects.png", width = 8, height = 8, dpi = 300)
+ggsave("figures/publication/Figure6.png", width = 8, height = 8, dpi = 300)
+
 # ===================================================================
 # FLIGHT MODEL
 # ===================================================================
@@ -157,7 +163,7 @@ flight_day$x   <- backtransform(flight_day$x, flight_day_scale)
 flight_age <- flight_age %>%
   mutate(x = recode(x,
                     "Female_Adult_no_offspring"   = "Adult F",
-                    "Female_Adult_with_offspring" = "Adult F w/ offspring",
+                    "Female_Adult_with_offspring" = "Adult F \nw/ offspring",
                     "Juvenile"                    = "Juvenile",
                     "Male_Adult"                  = "Adult M"
   ))
@@ -227,5 +233,8 @@ fp6 <- ggplot(flight_day, aes(x = x, y = predicted)) +
 p_flight <- (fp1 | fp2 ) / (fp3 | fp4) /
   (fp5 | fp6)
 
-p_vig
 p_flight
+
+ggsave("figures/flight-marginal-effects.png", width = 8, height = 8, dpi = 300)
+ggsave("figures/publication/Figure4.png", width = 8, height = 8, dpi = 300)
+
