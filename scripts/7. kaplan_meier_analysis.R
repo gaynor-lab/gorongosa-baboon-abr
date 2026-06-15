@@ -1,3 +1,5 @@
+# Make flight latency figures
+
 #load packages
 library(survival)
 library(survminer)
@@ -69,8 +71,8 @@ Baboon_flight_KM_24 <- Baboon_flight_KM_24 %>%
 #filter videos that have No_sound or sound.quality = poor or a sound delay as they will not be included in analysis
 Baboon_flight_KM_21 <- Final_2021 %>%
   filter(
-    !(Sound_quality %in% c("Poor", "None")),
-    Predator.cue != "No_sound"
+    !(sound_quality %in% c("Poor", "None")),
+    predator_cue != "No_sound"
   )
 
 #order frames in chronological order
@@ -79,17 +81,12 @@ Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
   arrange(frame, .by_group = TRUE) %>%
   ungroup()
 
-#change sound_delay_s column into numeric
-Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
-  mutate(Sound_delay_s = if_else(Sound_delay_s == "None", "0", Sound_delay_s),
-         Sound_delay_s = as.numeric(Sound_delay_s))
-
 #remove the number of frames before the audio cue is played
 Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
-  mutate(Sound_delay_s = ifelse(Sound_delay_s == "None" | is.na(Sound_delay_s), 0, Sound_delay_s),
-         Sound_delay_s = as.numeric(Sound_delay_s)) %>%
+  mutate(sound_delay_s = ifelse(is.na(sound_delay_s), 0, sound_delay_s),
+         sound_delay_s = as.numeric(sound_delay_s)) %>%
   group_by(file_name) %>%
-  slice((Sound_delay_s[1] * 30 + 1):n()) %>%
+  slice((sound_delay_s[1] * 30 + 1):n()) %>%
   ungroup()
 
 #create column by grouping videos by file_name and then labeling them with 0 if no flight present and 1 if flight present
@@ -119,32 +116,14 @@ Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
   summarise(
     latency_to_flee_s = first(latency_to_flee_s),
     flight_present = first(flight_present),
-    Year = first(Year),
-    Predator.cue = first(Predator.cue),
-    Focal.individual.sex = first(Focal.individual.sex),
-    Focal.individual.age = first(Focal.individual.age),
-    Number.of.individuals = first(Number.of.individuals),
-    Presence.of.offspring = first(Presence.of.offspring),
-    Camera.trap.site = first(Camera.trap.site),
+    year = first(year),
+    predator_cue = first(predator_cue),
+    sex = first(sex),
+    age = first(age),
+    group_number = first(group_number),
+    offspring = first(offspring),
+    site = first(site),
     .groups = "drop"
-  )
-
-#change offspring row to be numeric
-Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
-  mutate(
-    offspring = if_else(Presence.of.offspring == "None", 0L, 1L)
-  ) %>%
-  select(-Presence.of.offspring)  # remove the original column
-
-#change column names to match 2024 data for merge of datasets
-Baboon_flight_KM_21 <- Baboon_flight_KM_21 %>%
-  rename(
-    year = Year,
-    predator_cue = Predator.cue,
-    sex = Focal.individual.sex,
-    age = Focal.individual.age,
-    group_number = Number.of.individuals,
-    site = Camera.trap.site,
   )
 
 #Merge 2021 and 2024 datasets 
@@ -216,6 +195,7 @@ km_plot <- ggsurvplot(
   coord_cartesian(ylim = c(0, 0.25))))
 
 ggsave("figures/KM_plot_all.png", km_plot$plot, width = 5, height = 4)
+ggsave("figures/publication/Figure5.png", km_plot$plot, width = 5, height = 4)
 
 #KM plot for predator cue
 
@@ -387,3 +367,4 @@ library(cowplot)
 multipanel <- plot_grid(year_plot$plot, predator_plot$plot, habitat_plot$plot, sex_plot$plot,
           labels = c('A', 'B', 'C', 'D'), ncol = 2)
 ggsave("figures/KM_supplement_multipanel.png", multipanel, width = 12, height = 10, dpi = 300)
+ggsave("figures/publication/FigureS3.png", multipanel, width = 12, height = 10, dpi = 300)
