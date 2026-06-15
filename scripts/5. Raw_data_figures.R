@@ -1,4 +1,5 @@
 #Script for graphing raw data 
+# Make supplementary plots of the raw data
 
 #load packages
 library(ggpattern)
@@ -8,21 +9,24 @@ library(patchwork)
 
 
 #import dataframes
-Baboon_vigilance_stats_both <- readRDS("data_derived/Baboon_vigilance_stats_both.rds")
-Baboon_flight_stats_both <- readRDS("data_derived/Baboon_flight_stats_both.rds") 
-Baboon_vigilance_stats_both_nocontrol <- readRDS("data_derived/Baboon_vigilance_stats_both_nocontrol.rds") 
-Baboon_flight_stats_both_nocontrol <- readRDS("data_derived/Baboon_flight_stats_both_nocontrol.rds") 
+Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds")
+Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds") 
+
+Baboon_vigilance_df_nocontrol <- Baboon_vigilance_df %>% 
+  filter(cue_type == "Predator")
+Baboon_flight_df_nocontrol <- Baboon_flight_df %>% 
+  filter(cue_type == "Predator")
 
 
 # Vigilance plots ---------------------------------------------------------
 
 #Reorder predator cues for graphing
-Baboon_vigilance_stats_both <- Baboon_vigilance_stats_both %>%
+Baboon_vigilance_df <- Baboon_vigilance_df %>%
   mutate(predator_cue = factor(predator_cue, levels = c("Control", "Cheetah", "Wild dog", "Hyena", "Leopard","Lion"))) %>%
   filter(!is.na(predator_cue))  # Remove rows where predator_cue is NA
 
 #PROPORTION VIGILANCE PREDATOR CUE
-vigilance_pred_plot <- ggplot(Baboon_vigilance_stats_both, 
+vigilance_pred_plot <- ggplot(Baboon_vigilance_df, 
                               aes(x = predator_cue, y = proportion_vigilant)) +
   geom_jitter(position = position_jitter(width = 0.2),
               size = 1.5, alpha = 0.3, color = "#023743") +
@@ -47,7 +51,7 @@ vigilance_pred_plot <- ggplot(Baboon_vigilance_stats_both,
 
 
 #PROPORTION VIGILANCE YEAR
-vigilance_year_plot <- ggplot(Baboon_vigilance_stats_both_nocontrol, aes(x = year, y = proportion_vigilant)) +
+vigilance_year_plot <- ggplot(Baboon_vigilance_df_nocontrol, aes(x = as.factor(year), y = proportion_vigilant)) +
   geom_jitter(color = "#023743FF",  
               position = position_jitter(width = 0.2),  
               size = 1.5, alpha = 0.3) +  
@@ -62,7 +66,7 @@ vigilance_year_plot <- ggplot(Baboon_vigilance_stats_both_nocontrol, aes(x = yea
 
 
 #PROPORTION VIGILANCE HABITAT
-vigilance_habitat_plot <- ggplot(Baboon_vigilance_stats_both_nocontrol, aes(x = Habitat, y = proportion_vigilant)) +
+vigilance_habitat_plot <- ggplot(Baboon_vigilance_df_nocontrol, aes(x = Habitat, y = proportion_vigilant)) +
   geom_jitter(color = "#023743FF",  
               position = position_jitter(width = 0.2),  
               size = 1.5, alpha = 0.3) +  
@@ -77,7 +81,7 @@ vigilance_habitat_plot <- ggplot(Baboon_vigilance_stats_both_nocontrol, aes(x = 
         legend.position = "none") 
 
 #PROPORTION VIGILANCE PREY
-Baboon_vigilance_stats_both_nocontrol <- Baboon_vigilance_stats_both_nocontrol %>%
+Baboon_vigilance_stats_both_nocontrol <- Baboon_vigilance_df_nocontrol %>%
   mutate(age_sex_class = case_when(
     age_sex_class %in% c("Female_Adult_no_offspring") ~ "Female no offspring",
     age_sex_class %in% c("Female_Adult_with_offspring") ~ "Female with offspring",
@@ -86,16 +90,18 @@ Baboon_vigilance_stats_both_nocontrol <- Baboon_vigilance_stats_both_nocontrol %
   ))
 
 vigilance_prey_plot <- 
-  ggplot(Baboon_vigilance_stats_both_nocontrol, aes(x = age_sex_class, y = proportion_vigilant)) +
+  Baboon_vigilance_df_nocontrol %>% 
+  filter(age_sex_class != "Unknown") %>% 
+  ggplot(aes(x = age_sex_class, y = proportion_vigilant)) +
   geom_jitter(color = "#023743FF",  
               position = position_jitter(width = 0.2),  
               size = 1.5, alpha = 0.3) +  
   geom_boxplot(fill = "#023743FF", alpha = 0.6, outlier.shape = NA, position = position_dodge(width = 0.8)) +  # Set single fill color
   labs(x = "Age and Sex Class", y = "Proportion Vigilant") +
   scale_x_discrete(labels = c(
-    "Female no offspring" = "Female no \noffspring",
-    "Female with offspring" = "Female w/ \noffspring",
-    "Male" = "Male",
+    "Female_Adult_no_offspring" = "Adult F",
+    "Female_Adult_with_offspring" = "Adult F w/ \noffspring",
+    "Male_Adult" = "Adult M",
     "Juvenile" = "Juvenile"
   )) +
   theme_minimal() +
@@ -116,7 +122,10 @@ vigilance_combined <- (vigilance_pred_plot + vigilance_year_plot) /
   theme(plot.tag = element_text(size = 14))
 
 ggsave(vigilance_combined, 
-       filename = "figures/vigilance_summary.png", 
+       filename = "figures/vigilance-raw-data.png", 
+       width = 6, height = 6)
+ggsave(vigilance_combined, 
+       filename = "figures/publication/FigureS2.png", 
        width = 6, height = 6)
 
 # Flight plots ------------------------------------------------------------
@@ -124,7 +133,7 @@ ggsave(vigilance_combined,
 
 #FLIGHT BY PREDATOR CUE
 #calculate flight frequency
-flight_pred <- Baboon_flight_stats_both %>%
+flight_pred <- Baboon_flight_df %>%
   group_by(predator_cue) %>%
   summarise(
     flight_present = sum(flight_present == 1),
@@ -136,7 +145,7 @@ flight_pred <- Baboon_flight_stats_both %>%
   )
 
 #Reorder predator cues for graphing
-flight_pred <- flight_pred %>%
+Baboon_flight_df <- Baboon_flight_df %>%
   mutate(predator_cue = factor(predator_cue, levels = c("Control", "Cheetah", "Wild dog", "Hyena", "Leopard","Lion"))) %>%
   filter(!is.na(predator_cue))  # Remove rows where predator_cue is NA
 
@@ -170,7 +179,7 @@ flight_pred_plot <- ggplot(flight_pred, aes(x = predator_cue, y = flight)) +
 
 #FLIGHT BY YEAR
 #calculate flight frequency
-flight_year <- Baboon_flight_stats_both_nocontrol %>%
+flight_year <- Baboon_flight_df_nocontrol %>%
   group_by(year) %>%
   summarise(
     flight_present = sum(flight_present == 1),
@@ -181,7 +190,7 @@ flight_year <- Baboon_flight_stats_both_nocontrol %>%
     .groups = "drop"
   )
 
-flight_year_plot <-ggplot(flight_year, aes(x = year, y = flight)) +
+flight_year_plot <-ggplot(flight_year, aes(x = as.factor(year), y = flight)) +
   geom_bar(stat = "identity", width = 0.6, alpha = 0.8, fill = "#023743FF") +
   geom_errorbar(aes(ymin = flight - se, ymax = flight + se),
                 width = 0.2,
@@ -200,7 +209,7 @@ flight_year_plot <-ggplot(flight_year, aes(x = year, y = flight)) +
 #FLIGHT HABITAT
 
 #calculate flight frequency
-flight_habitat <- Baboon_flight_stats_both_nocontrol %>%
+flight_habitat <- Baboon_flight_df_nocontrol %>%
   group_by(Habitat) %>%
   summarise(
     flight_present = sum(flight_present == 1),
@@ -230,7 +239,7 @@ flight_habitat_plot <- ggplot(flight_habitat, aes(x = Habitat, y = flight, fill 
 #FLIGHT PREY
 
 #calculate flight frequency
-Baboon_flight_graph_both <- Baboon_flight_stats_both_nocontrol %>%
+Baboon_flight_graph_both <- Baboon_flight_df_nocontrol %>%
   group_by(age_sex_class) %>%
   summarise(
     flight_present = sum(flight_present == 1),
@@ -266,9 +275,9 @@ flight_prey_plot <-
         axis.title.y = element_text(size = 12),
         axis.title = element_text(size = 12)) + 
   scale_x_discrete(labels = c(
-    "Female no offspring" = "Female no \noffspring",
-    "Female with offspring" = "Female w/ \noffspring",
-    "Male" = "Male",
+    "Female no offspring" = "Adult F",
+    "Female with offspring" = "Adult F w/ \noffspring",
+    "Male" = "Adult M",
     "Juvenile" = "Juvenile"))
 
 # make all y-axes the same
@@ -288,4 +297,7 @@ flight_combined <- (flight_pred_plot + flight_year_plot) /
 
 ggsave(flight_combined, 
        filename = "figures/flight_summary.png", 
+       width = 6, height = 6)
+ggsave(flight_combined, 
+       filename = "figures/publication/FigureS1.png", 
        width = 6, height = 6)
