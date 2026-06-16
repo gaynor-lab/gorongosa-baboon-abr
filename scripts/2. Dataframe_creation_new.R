@@ -87,6 +87,11 @@ Final_2021_2024 <- Final_2021_2024 %>%
   mutate(day_number = as.numeric(date_corrected - min(date_corrected, na.rm = TRUE)) + 1) %>%
   ungroup()
 
+# Calculate sample size in each year
+Final_2021_2024 %>% 
+  select(file_name, year) %>% 
+  unique() %>% 
+  count(year)
 
 # DATAFRAME FOR VIGILANCE ANALYSIS ----------------------------------------
 
@@ -98,6 +103,13 @@ Baboon_vigilance <- Final_2021_2024 %>%
     Behaviour == "Occluded" ~ "Occluded",
     TRUE ~ "Non_vigilant"
   ))
+
+# Count number of videos that had vigilance
+Vig_count <- Baboon_vigilance %>% 
+  filter(cue_type == "Predator") %>% 
+  count(file_name, behaviour_class) %>% 
+  pivot_wider(names_from = behaviour_class, values_from = n, values_fill = 0) 
+nrow(Vig_count %>% filter(Vigilant > 0)) / nrow(Vig_count) # 71%
 
 # Exclude videos where baboon fled immediately as they display not proportion of vigilance
 Baboon_vigilance <- Baboon_vigilance %>%
