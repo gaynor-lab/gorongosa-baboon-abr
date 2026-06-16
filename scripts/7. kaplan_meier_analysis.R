@@ -304,7 +304,7 @@ sex_plot <- ggsurvplot(
   censor.shape = "|",
   ggtheme = theme_minimal(),
   legend.title = "Age sex class",    
-  legend.labs = c("Female adult no offspring", "Female adult with offspring", "Juvenile", "Male")
+  legend.labs = c("Adult F", "Adult F (w/ offspring)", "Juvenile", "Adult M")
 )
 
 sex_plot$plot <- sex_plot$plot +
