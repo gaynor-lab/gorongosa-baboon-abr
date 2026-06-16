@@ -22,7 +22,8 @@ flight_plot <- model_output %>%
         legend.position = "none",
         plot.title = element_text(face = "bold")) +
   ylim(c(-1.25,1.75)) +
-  scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
+  scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Adult F (w/ offspring)",
+                              "Class = Male adult" = "Class = Adult M")) +
   coord_flip() + # switch x and y coordinates
   labs(y = "Beta Coefficient", col = "Covariate", title = "Flight") +
   scale_color_manual(values = c("#0077B6", "#1e9b56",  "#4c00b0", "#f27229", "#ea3633", "#f8be1d"))
@@ -45,7 +46,8 @@ vigilance_plot <- model_output %>%
         panel.background = element_blank(),
         legend.position = "none",
         plot.title = element_text(face = "bold")) +
-  scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Female adult \nwith offspring")) +
+  scale_x_discrete(labels = c("Class = Female adult w offspring" = "Class = Adult F (w/ offspring)",
+                              "Class = Male adult" = "Class = Adult M")) +
   coord_flip() + # switch x and y coordinates
   #ylim(c(-0.5,1.1)) +
   labs(y = "Beta Coefficient", col = "Covariate", title = "Vigilance") +
