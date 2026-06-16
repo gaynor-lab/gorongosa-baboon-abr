@@ -13,6 +13,12 @@ library(stringr)
 # Import data
 Baboon_vigilance_df <- readRDS("data_derived/Baboon_vigilance_df.rds") 
 
+# Get sample sizes
+Baboon_vigilance_df %>% 
+  count(year, cue_type)
+Baboon_vigilance_df %>% 
+  count(cue_type)
+
 # Define reference levels
 Baboon_vigilance_df <- Baboon_vigilance_df %>%
   mutate(year = factor(year, levels = c(2021, 2024)),
@@ -103,6 +109,10 @@ results_vigilance <- coefs_vigilance %>%
 
 # Import data
 Baboon_flight_df <- readRDS("data_derived/Baboon_flight_binary_df.rds") 
+
+# Get sample sizes
+Baboon_flight_df %>% 
+  count(cue_type)
 
 # Define reference levels
 Baboon_flight_df <- Baboon_flight_df %>%
