@@ -171,7 +171,18 @@ Baboon_flight_binary <- Final_2021_2024 %>%
 # Export dataset
 saveRDS(Baboon_flight_binary, "data_derived/Baboon_flight_binary_df.rds")
 
+# Also look at climbing behaviour
+Baboon_climbing <- Final_2021_2024 %>%
+  group_by(file_name) %>% 
+  mutate(climbing_present = if_else(any(str_detect(Behaviour, "Climbing")), 1, 0)) %>%
+  ungroup() %>%
+  select(file_name, climbing_present) %>% 
+  unique()
 
+Baboon_climbing %>% 
+  filter(cue_type == "Predator") %>%
+  count(as.factor(climbing_present))
+# Present in 3.5% (n=27) of videos
 
 # DATAFRAME FOR LATENCY TO FLEE ----------------------------------------
 
